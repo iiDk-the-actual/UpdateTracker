@@ -270,7 +270,7 @@ public class GorillaPlayerScoreboardLine : MonoBehaviour
 		{
 			OtherPlayerNickName.Remove(12);
 		}
-		WebFlags webFlags = new WebFlags(1);
+		WebFlags webFlags = new WebFlags(3);
 		NetEventOptions netEventOptions = new NetEventOptions
 		{
 			Flags = webFlags,
@@ -295,7 +295,7 @@ public class GorillaPlayerScoreboardLine : MonoBehaviour
 		{
 			OtherPlayerNickName.Remove(12);
 		}
-		WebFlags webFlags = new WebFlags(1);
+		WebFlags webFlags = new WebFlags(3);
 		NetEventOptions netEventOptions = new NetEventOptions
 		{
 			Flags = webFlags,

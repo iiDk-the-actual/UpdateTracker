@@ -419,51 +419,7 @@ public class GorillaTagCompetitiveServerApi : MonoBehaviour
 
 	private IEnumerator SetEloValue(GorillaTagCompetitiveServerApi.RankedModeSetEloValueRequestData data, Action callback)
 	{
-		UnityWebRequest request = new UnityWebRequest(PlayFabAuthenticatorSettings.MmrApiBaseUrl + "/api/UpdateELOInternal", "POST");
-		byte[] bytes = Encoding.UTF8.GetBytes(JsonUtility.ToJson(data));
-		bool retry = false;
-		request.uploadHandler = new UploadHandlerRaw(bytes);
-		request.downloadHandler = new DownloadHandlerBuffer();
-		request.SetRequestHeader("Content-Type", "application/json");
-		request.SetRequestHeader("x-functions-key", GorillaTagCompetitiveServerApi.FUNCTION_KEY);
-		yield return request.SendWebRequest();
-		if (request.result == UnityWebRequest.Result.Success)
-		{
-			GTDev.Log<string>("SetEloValue Success: raw response: " + request.downloadHandler.text, null);
-			this.OnCompleteSetEloValue(request.downloadHandler.text, callback);
-		}
-		else
-		{
-			long responseCode = request.responseCode;
-			if (responseCode > 500L && responseCode < 600L)
-			{
-				retry = true;
-			}
-			else if (request.result == UnityWebRequest.Result.ConnectionError)
-			{
-				retry = true;
-			}
-			else
-			{
-				this.OnCompleteSetEloValue(request.downloadHandler.text, callback);
-			}
-		}
-		if (retry)
-		{
-			if (this.SetEloValueRetryCount < this.MAX_SERVER_RETRIES)
-			{
-				int num = (int)Mathf.Pow(2f, (float)(this.SetEloValueRetryCount + 1));
-				this.SetEloValueRetryCount++;
-				yield return new WaitForSeconds((float)num);
-				this.SetEloValueInProgress = false;
-				this.RequestSetEloValue(data.elo, callback);
-			}
-			else
-			{
-				this.SetEloValueRetryCount = 0;
-				this.OnCompleteSetEloValue(null, callback);
-			}
-		}
+		GTDev.LogWarning<string>("SetEloValue is for internal use only (Is Beta)", null);
 		yield break;
 	}
 
@@ -646,8 +602,6 @@ public class GorillaTagCompetitiveServerApi : MonoBehaviour
 	}
 
 	public static GorillaTagCompetitiveServerApi Instance;
-
-	public static string FUNCTION_KEY = "";
 
 	public int MAX_SERVER_RETRIES = 3;
 

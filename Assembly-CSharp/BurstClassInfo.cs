@@ -76,24 +76,24 @@ public static class BurstClassInfo
 	}
 
 	[BurstCompile]
-	[MonoPInvokeCallback(typeof(BurstClassInfo.Index_00004474$PostfixBurstDelegate))]
+	[MonoPInvokeCallback(typeof(BurstClassInfo.Index_00004489$PostfixBurstDelegate))]
 	public unsafe static int Index(lua_State* L)
 	{
-		return BurstClassInfo.Index_00004474$BurstDirectCall.Invoke(L);
+		return BurstClassInfo.Index_00004489$BurstDirectCall.Invoke(L);
 	}
 
 	[BurstCompile]
-	[MonoPInvokeCallback(typeof(BurstClassInfo.NewIndex_00004475$PostfixBurstDelegate))]
+	[MonoPInvokeCallback(typeof(BurstClassInfo.NewIndex_0000448A$PostfixBurstDelegate))]
 	public unsafe static int NewIndex(lua_State* L)
 	{
-		return BurstClassInfo.NewIndex_00004475$BurstDirectCall.Invoke(L);
+		return BurstClassInfo.NewIndex_0000448A$BurstDirectCall.Invoke(L);
 	}
 
 	[BurstCompile]
-	[MonoPInvokeCallback(typeof(BurstClassInfo.NameCall_00004476$PostfixBurstDelegate))]
+	[MonoPInvokeCallback(typeof(BurstClassInfo.NameCall_0000448B$PostfixBurstDelegate))]
 	public unsafe static int NameCall(lua_State* L)
 	{
-		return BurstClassInfo.NameCall_00004476$BurstDirectCall.Invoke(L);
+		return BurstClassInfo.NameCall_0000448B$BurstDirectCall.Invoke(L);
 	}
 
 	[BurstCompile]
@@ -201,7 +201,6 @@ public static class BurstClassInfo
 			}
 			intPtr = Luau.lua_light_ptr(L, 1);
 		}
-		*(int*)(void*)(intPtr + classInfo.Size) = 1;
 		int num = Luau.lua_objlen(L, 2);
 		int num2 = LuaHashing.ByteHash(Luau.luaL_checkstring(L, 2), num);
 		BurstClassInfo.BurstFieldInfo burstFieldInfo;
@@ -316,24 +315,24 @@ public static class BurstClassInfo
 	}
 
 	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-	internal unsafe delegate int Index_00004474$PostfixBurstDelegate(lua_State* L);
+	internal unsafe delegate int Index_00004489$PostfixBurstDelegate(lua_State* L);
 
-	internal static class Index_00004474$BurstDirectCall
+	internal static class Index_00004489$BurstDirectCall
 	{
 		[BurstDiscard]
 		private static void GetFunctionPointerDiscard(ref IntPtr A_0)
 		{
-			if (BurstClassInfo.Index_00004474$BurstDirectCall.Pointer == 0)
+			if (BurstClassInfo.Index_00004489$BurstDirectCall.Pointer == 0)
 			{
-				BurstClassInfo.Index_00004474$BurstDirectCall.Pointer = BurstCompiler.CompileFunctionPointer<BurstClassInfo.Index_00004474$PostfixBurstDelegate>(new BurstClassInfo.Index_00004474$PostfixBurstDelegate(BurstClassInfo.Index)).Value;
+				BurstClassInfo.Index_00004489$BurstDirectCall.Pointer = BurstCompiler.CompileFunctionPointer<BurstClassInfo.Index_00004489$PostfixBurstDelegate>(new BurstClassInfo.Index_00004489$PostfixBurstDelegate(BurstClassInfo.Index)).Value;
 			}
-			A_0 = BurstClassInfo.Index_00004474$BurstDirectCall.Pointer;
+			A_0 = BurstClassInfo.Index_00004489$BurstDirectCall.Pointer;
 		}
 
 		private static IntPtr GetFunctionPointer()
 		{
 			IntPtr intPtr = (IntPtr)0;
-			BurstClassInfo.Index_00004474$BurstDirectCall.GetFunctionPointerDiscard(ref intPtr);
+			BurstClassInfo.Index_00004489$BurstDirectCall.GetFunctionPointerDiscard(ref intPtr);
 			return intPtr;
 		}
 
@@ -341,7 +340,7 @@ public static class BurstClassInfo
 		{
 			if (BurstCompiler.IsEnabled)
 			{
-				IntPtr functionPointer = BurstClassInfo.Index_00004474$BurstDirectCall.GetFunctionPointer();
+				IntPtr functionPointer = BurstClassInfo.Index_00004489$BurstDirectCall.GetFunctionPointer();
 				if (functionPointer != 0)
 				{
 					return calli(System.Int32(lua_State*), L, functionPointer);
@@ -354,24 +353,24 @@ public static class BurstClassInfo
 	}
 
 	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-	internal unsafe delegate int NewIndex_00004475$PostfixBurstDelegate(lua_State* L);
+	internal unsafe delegate int NewIndex_0000448A$PostfixBurstDelegate(lua_State* L);
 
-	internal static class NewIndex_00004475$BurstDirectCall
+	internal static class NewIndex_0000448A$BurstDirectCall
 	{
 		[BurstDiscard]
 		private static void GetFunctionPointerDiscard(ref IntPtr A_0)
 		{
-			if (BurstClassInfo.NewIndex_00004475$BurstDirectCall.Pointer == 0)
+			if (BurstClassInfo.NewIndex_0000448A$BurstDirectCall.Pointer == 0)
 			{
-				BurstClassInfo.NewIndex_00004475$BurstDirectCall.Pointer = BurstCompiler.CompileFunctionPointer<BurstClassInfo.NewIndex_00004475$PostfixBurstDelegate>(new BurstClassInfo.NewIndex_00004475$PostfixBurstDelegate(BurstClassInfo.NewIndex)).Value;
+				BurstClassInfo.NewIndex_0000448A$BurstDirectCall.Pointer = BurstCompiler.CompileFunctionPointer<BurstClassInfo.NewIndex_0000448A$PostfixBurstDelegate>(new BurstClassInfo.NewIndex_0000448A$PostfixBurstDelegate(BurstClassInfo.NewIndex)).Value;
 			}
-			A_0 = BurstClassInfo.NewIndex_00004475$BurstDirectCall.Pointer;
+			A_0 = BurstClassInfo.NewIndex_0000448A$BurstDirectCall.Pointer;
 		}
 
 		private static IntPtr GetFunctionPointer()
 		{
 			IntPtr intPtr = (IntPtr)0;
-			BurstClassInfo.NewIndex_00004475$BurstDirectCall.GetFunctionPointerDiscard(ref intPtr);
+			BurstClassInfo.NewIndex_0000448A$BurstDirectCall.GetFunctionPointerDiscard(ref intPtr);
 			return intPtr;
 		}
 
@@ -379,7 +378,7 @@ public static class BurstClassInfo
 		{
 			if (BurstCompiler.IsEnabled)
 			{
-				IntPtr functionPointer = BurstClassInfo.NewIndex_00004475$BurstDirectCall.GetFunctionPointer();
+				IntPtr functionPointer = BurstClassInfo.NewIndex_0000448A$BurstDirectCall.GetFunctionPointer();
 				if (functionPointer != 0)
 				{
 					return calli(System.Int32(lua_State*), L, functionPointer);
@@ -392,24 +391,24 @@ public static class BurstClassInfo
 	}
 
 	[UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-	internal unsafe delegate int NameCall_00004476$PostfixBurstDelegate(lua_State* L);
+	internal unsafe delegate int NameCall_0000448B$PostfixBurstDelegate(lua_State* L);
 
-	internal static class NameCall_00004476$BurstDirectCall
+	internal static class NameCall_0000448B$BurstDirectCall
 	{
 		[BurstDiscard]
 		private static void GetFunctionPointerDiscard(ref IntPtr A_0)
 		{
-			if (BurstClassInfo.NameCall_00004476$BurstDirectCall.Pointer == 0)
+			if (BurstClassInfo.NameCall_0000448B$BurstDirectCall.Pointer == 0)
 			{
-				BurstClassInfo.NameCall_00004476$BurstDirectCall.Pointer = BurstCompiler.CompileFunctionPointer<BurstClassInfo.NameCall_00004476$PostfixBurstDelegate>(new BurstClassInfo.NameCall_00004476$PostfixBurstDelegate(BurstClassInfo.NameCall)).Value;
+				BurstClassInfo.NameCall_0000448B$BurstDirectCall.Pointer = BurstCompiler.CompileFunctionPointer<BurstClassInfo.NameCall_0000448B$PostfixBurstDelegate>(new BurstClassInfo.NameCall_0000448B$PostfixBurstDelegate(BurstClassInfo.NameCall)).Value;
 			}
-			A_0 = BurstClassInfo.NameCall_00004476$BurstDirectCall.Pointer;
+			A_0 = BurstClassInfo.NameCall_0000448B$BurstDirectCall.Pointer;
 		}
 
 		private static IntPtr GetFunctionPointer()
 		{
 			IntPtr intPtr = (IntPtr)0;
-			BurstClassInfo.NameCall_00004476$BurstDirectCall.GetFunctionPointerDiscard(ref intPtr);
+			BurstClassInfo.NameCall_0000448B$BurstDirectCall.GetFunctionPointerDiscard(ref intPtr);
 			return intPtr;
 		}
 
@@ -417,7 +416,7 @@ public static class BurstClassInfo
 		{
 			if (BurstCompiler.IsEnabled)
 			{
-				IntPtr functionPointer = BurstClassInfo.NameCall_00004476$BurstDirectCall.GetFunctionPointer();
+				IntPtr functionPointer = BurstClassInfo.NameCall_0000448B$BurstDirectCall.GetFunctionPointer();
 				if (functionPointer != 0)
 				{
 					return calli(System.Int32(lua_State*), L, functionPointer);

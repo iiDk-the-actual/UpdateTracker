@@ -37,6 +37,6 @@ public static class NetworkSystemRaiseEvent
 
 	public static readonly NetEventOptions newWeb = new NetEventOptions
 	{
-		Flags = new WebFlags(1)
+		Flags = new WebFlags(3)
 	};
 }

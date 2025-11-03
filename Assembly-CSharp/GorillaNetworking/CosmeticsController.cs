@@ -2419,7 +2419,7 @@ namespace GorillaNetworking
 				b = 10;
 			}
 			RaiseEventOptions raiseEventOptions = new RaiseEventOptions();
-			WebFlags webFlags = new WebFlags(1);
+			WebFlags webFlags = new WebFlags(3);
 			raiseEventOptions.Flags = webFlags;
 			object[] array = new object[0];
 			PhotonNetwork.RaiseEvent(b, array, raiseEventOptions, SendOptions.SendReliable);

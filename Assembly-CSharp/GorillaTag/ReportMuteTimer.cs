@@ -48,7 +48,7 @@ namespace GorillaTag
 
 		private static readonly NetEventOptions netEventOptions = new NetEventOptions
 		{
-			Flags = new WebFlags(1),
+			Flags = new WebFlags(3),
 			TargetActors = new int[] { -1 }
 		};
 

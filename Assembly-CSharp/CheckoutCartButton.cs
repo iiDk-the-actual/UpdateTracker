@@ -47,10 +47,7 @@ public class CheckoutCartButton : GorillaPressableButton
 			{
 				this.buttonRenderer.material = this.unpressedMaterial;
 			}
-			if (this.myText.IsNotNull())
-			{
-				this.SetOffText(true, this.myTmpText.IsNotNull(), this.myTmpText2.IsNotNull());
-			}
+			this.SetOffText(this.myText.IsNotNull(), this.myTmpText.IsNotNull(), this.myTmpText2.IsNotNull());
 		}
 	}
 

@@ -221,6 +221,7 @@ namespace GorillaNetworking
 				PlayFabId = this._playFabPlayerIdCache,
 				TitleId = PlayFabSettings.TitleId,
 				MothershipEnvId = MothershipClientApiUnity.EnvironmentId,
+				MothershipDeploymentId = MothershipClientApiUnity.DeploymentId,
 				MothershipToken = MothershipClientContext.Token,
 				MothershipId = MothershipClientContext.MothershipId
 			}, new Action<PlayFabAuthenticator.CachePlayFabIdResponse>(this.OnCachePlayFabIdRequest)));
@@ -275,6 +276,10 @@ namespace GorillaNetworking
 				{
 					"MothershipEnvId",
 					MothershipClientApiUnity.EnvironmentId
+				},
+				{
+					"MothershipDeploymentId",
+					MothershipClientApiUnity.DeploymentId
 				},
 				{
 					"MothershipToken",
@@ -569,6 +574,7 @@ namespace GorillaNetworking
 						PlayFabId = this._playFabPlayerIdCache,
 						TitleId = PlayFabSettings.TitleId,
 						MothershipEnvId = MothershipClientApiUnity.EnvironmentId,
+						MothershipDeploymentId = MothershipClientApiUnity.DeploymentId,
 						MothershipToken = MothershipClientContext.Token,
 						MothershipId = MothershipClientContext.MothershipId
 					}, new Action<PlayFabAuthenticator.CachePlayFabIdResponse>(this.OnCachePlayFabIdRequest)));
@@ -728,6 +734,8 @@ namespace GorillaNetworking
 
 			public string MothershipEnvId;
 
+			public string MothershipDeploymentId;
+
 			public string MothershipToken;
 
 			public string MothershipId;
@@ -747,6 +755,8 @@ namespace GorillaNetworking
 			public string AgeCategory;
 
 			public string MothershipEnvId;
+
+			public string MothershipDeploymentId;
 
 			public string MothershipToken;
 

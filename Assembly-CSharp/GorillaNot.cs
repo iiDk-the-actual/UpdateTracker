@@ -175,7 +175,7 @@ public class GorillaNot : MonoBehaviour, IGorillaSliceableSimple
 			}
 			this.reportedPlayers.Add(this.suspiciousPlayerId);
 			this.testAssault = false;
-			WebFlags webFlags = new WebFlags(1);
+			WebFlags webFlags = new WebFlags(3);
 			NetEventOptions netEventOptions = new NetEventOptions
 			{
 				TargetActors = GorillaNot.targetActors,

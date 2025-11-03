@@ -1462,7 +1462,7 @@ namespace GorillaLocomotion
 				this.averageSlipPercentage /= (float)num7;
 				if (num7 == 1)
 				{
-					this.surfaceDirection = (flag7 ? Vector3.ProjectOnPlane(-this.rightHand.controllerTransform.up, this.rightHand.slideNormal) : Vector3.ProjectOnPlane(-this.leftHand.controllerTransform.up, this.leftHand.slideNormal));
+					this.surfaceDirection = (flag7 ? Vector3.ProjectOnPlane(this.rightHand.handFollower.forward, this.rightHand.slideNormal) : Vector3.ProjectOnPlane(this.leftHand.handFollower.forward, this.leftHand.slideNormal));
 					if (Vector3.Dot(this.slideVelocity, this.surfaceDirection) > 0f)
 					{
 						this.slideVelocity = Vector3.Project(this.slideVelocity, Vector3.Slerp(this.slideVelocity, this.surfaceDirection.normalized * this.slideVelocity.magnitude, this.slideControl));
@@ -1496,7 +1496,7 @@ namespace GorillaLocomotion
 			}
 			else if (this.anyHandWasSliding)
 			{
-				this.playerRigidBody.linearVelocity = ((Vector3.Dot(this.averagedVelocity, this.slideAverageNormal) <= 0f) ? Vector3.ProjectOnPlane(this.averagedVelocity, this.slideAverageNormal) : this.averagedVelocity);
+				this.playerRigidBody.linearVelocity = ((Vector3.Dot(this.slideVelocity, this.slideAverageNormal) <= 0f) ? Vector3.ProjectOnPlane(this.slideVelocity, this.slideAverageNormal) : this.slideVelocity);
 			}
 			if (this.anyHandIsColliding && !this.disableMovement && !this.turnedThisFrame && !this.didAJump)
 			{
@@ -1510,6 +1510,7 @@ namespace GorillaLocomotion
 						{
 							this.stiltStates[l].isSliding = false;
 						}
+						this.anyHandIsSliding = false;
 						this.didAJump = true;
 						float num8 = this.ApplyNativeScaleAdjustment(Mathf.Min(this.maxJumpSpeed * this.ExtraVelMaxMultiplier(), this.jumpMultiplier * this.ExtraVelMultiplier() * Vector3.Project(this.averagedVelocity, this.slideAverageNormal).magnitude));
 						this.playerRigidBody.linearVelocity = num8 * this.slideAverageNormal.normalized + Vector3.ProjectOnPlane(this.slideVelocity, this.slideAverageNormal);
@@ -3848,7 +3849,7 @@ namespace GorillaLocomotion
 				Vector3 vector2 = this.GetLastPosition();
 				Vector3 vector3 = vector - vector2;
 				bool flag = this.gtPlayer.lastMovingSurfaceContact == GTPlayer.MovingSurfaceContactPoint.LEFT;
-				if (!this.gtPlayer.didAJump && this.wasSliding && Vector3.Dot(this.slideNormal, Vector3.up) > 0f)
+				if (!this.gtPlayer.didAJump && this.wasSliding && Vector3.Dot(this.gtPlayer.slideAverageNormal, Vector3.up) > 0f)
 				{
 					vector3 += Vector3.Project(-this.gtPlayer.slideAverageNormal * this.gtPlayer.stickDepth * this.gtPlayer.scale, Vector3.down);
 				}

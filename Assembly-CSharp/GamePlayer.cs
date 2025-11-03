@@ -51,8 +51,10 @@ public class GamePlayer : MonoBehaviour
 		{
 			if (this.hands[j].snappedEntityId != GameEntityId.Invalid && this.hands[j].snappedEntityManager != null)
 			{
-				this.hands[j].snappedEntityManager.RequestGrabEntity(this.hands[j].snappedEntityId, !GamePlayer.IsLeftHand(j), Vector3.zero, Quaternion.identity);
-				this.hands[j].snappedEntityManager.RequestThrowEntity(this.hands[j].snappedEntityId, !GamePlayer.IsLeftHand(j), GTPlayer.Instance.HeadCenterPosition, Vector3.zero, Vector3.zero);
+				GameEntityId snappedEntityId = this.hands[j].snappedEntityId;
+				GameEntityManager snappedEntityManager = this.hands[j].snappedEntityManager;
+				snappedEntityManager.RequestGrabEntity(snappedEntityId, !GamePlayer.IsLeftHand(j), Vector3.zero, Quaternion.identity);
+				snappedEntityManager.RequestThrowEntity(snappedEntityId, !GamePlayer.IsLeftHand(j), GTPlayer.Instance.HeadCenterPosition, Vector3.zero, Vector3.zero);
 			}
 			this.ClearSnapped(j);
 		}

@@ -5,7 +5,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Newtonsoft.Json;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 [DefaultExecutionOrder(-100)]
 public class SIProgression : MonoBehaviour, IGorillaSliceableSimple, GorillaQuestManager
@@ -80,61 +79,6 @@ public class SIProgression : MonoBehaviour, IGorillaSliceableSimple, GorillaQues
 			ProgressionManager.Instance.OnNodeUnlocked -= this.HandleNodeUnlocked;
 		}
 		GorillaSlicerSimpleManager.UnregisterSliceable(this, GorillaSlicerSimpleManager.UpdateStep.Update);
-	}
-
-	private void Update()
-	{
-		SIUpgradeType siupgradeType = SIUpgradeType.Initialize;
-		if (Keyboard.current != null && Keyboard.current.numpad7Key.wasPressedThisFrame)
-		{
-			Debug.Log("[SIProgressionTester] Trying to unlock: " + siupgradeType.ToString());
-			this.TryUnlock(siupgradeType);
-		}
-		if (Keyboard.current != null && Keyboard.current.numpad9Key.wasPressedThisFrame)
-		{
-			Debug.Log("[SIProgressionTester] Getting tree: " + siupgradeType.ToString());
-			ProgressionManager.Instance.RefreshProgressionTree();
-		}
-		if (Keyboard.current != null && Keyboard.current.numpad8Key.wasPressedThisFrame)
-		{
-			Debug.Log("[SIProgressionTester] Trying to increment strangewood");
-			this.AttemptIncrementResource(SIResource.ResourceType.StrangeWood);
-		}
-		if (Keyboard.current != null && Keyboard.current.numpad1Key.wasPressedThisFrame)
-		{
-			Debug.Log("[SIProgressionTester] Completing a quest");
-			this.AttemptRedeemCompletedQuest(1);
-		}
-		if (Keyboard.current != null && Keyboard.current.numpad2Key.wasPressedThisFrame)
-		{
-			Debug.Log("[SIProgressionTester] Completing bonus quest");
-			this.AttemptRedeemBonusPoint();
-		}
-		if (Keyboard.current != null && Keyboard.current.numpad3Key.wasPressedThisFrame)
-		{
-			Debug.Log("[SIProgressionTester] Collecting monke idol");
-			this.AttemptCollectMonkeIdol();
-		}
-		if (Keyboard.current != null && Keyboard.current.numpad4Key.wasPressedThisFrame)
-		{
-			Debug.Log("[SIProgressionTester] get active quests");
-			ProgressionManager.Instance.GetActiveSIQuests(new Action<List<RotatingQuest>>(this.LoadQuestsFromServer), new Action<string>(this.FailedInventory));
-		}
-		if (Keyboard.current != null && Keyboard.current.numpad5Key.wasPressedThisFrame)
-		{
-			Debug.Log("[SIProgressionTester] get inventory");
-			ProgressionManager.Instance.RefreshUserInventory();
-		}
-		if (Keyboard.current != null && Keyboard.current.numpad6Key.wasPressedThisFrame)
-		{
-			Debug.Log("[SIProgressionTester] get status");
-			ProgressionManager.Instance.GetSIQuestStatus(new Action<ProgressionManager.UserQuestsStatusResponse>(this.GetQuestStatus), new Action<string>(this.FailedInventory));
-		}
-		if (Keyboard.current != null && Keyboard.current.numpad0Key.wasPressedThisFrame)
-		{
-			Debug.Log("[SIProgressionTester] reset status");
-			ProgressionManager.Instance.ResetSIQuestStatus(new Action<ProgressionManager.UserQuestsStatusResponse>(this.GetQuestStatus), new Action<string>(this.FailedInventory));
-		}
 	}
 
 	public void Init()
@@ -224,16 +168,6 @@ public class SIProgression : MonoBehaviour, IGorillaSliceableSimple, GorillaQues
 		}
 	}
 
-	private void GetQuestStatus(ProgressionManager.UserQuestsStatusResponse userQuestsStatus)
-	{
-		Debug.Log(JsonConvert.SerializeObject(userQuestsStatus));
-	}
-
-	private void FailedInventory(string ohno)
-	{
-		Debug.LogError("[SIProgressionTester] Error: " + ohno);
-	}
-
 	public int GetCurrencyAmount(SIResource.ResourceType currencyType)
 	{
 		ProgressionManager.MothershipItemSummary mothershipItemSummary;
@@ -241,7 +175,6 @@ public class SIProgression : MonoBehaviour, IGorillaSliceableSimple, GorillaQues
 		{
 			return 0;
 		}
-		Debug.Log(string.Format("[SIProgression] Inventory Item {0} id:{1} quantity:{2}", mothershipItemSummary.Name, mothershipItemSummary.InGameId, mothershipItemSummary.Quantity));
 		return mothershipItemSummary.Quantity;
 	}
 
@@ -306,21 +239,6 @@ public class SIProgression : MonoBehaviour, IGorillaSliceableSimple, GorillaQues
 				}
 			}
 		}
-		foreach (KeyValuePair<SIUpgradeType, SIProgression.SINode> keyValuePair in this.siNodes)
-		{
-			string text = "";
-			foreach (KeyValuePair<SIResource.ResourceType, int> keyValuePair2 in keyValuePair.Value.costs)
-			{
-				text += string.Format(" {0}:{1}", keyValuePair.Key, keyValuePair.Value);
-			}
-			Debug.Log(string.Format("[SIProgression] Node {0} id:{1} unlocked:{2} costs:{3}", new object[]
-			{
-				keyValuePair.ToString(),
-				keyValuePair.Value.id,
-				keyValuePair.Value.unlocked,
-				text
-			}));
-		}
 		Action onTreeReady = this.OnTreeReady;
 		if (onTreeReady == null)
 		{
@@ -332,7 +250,6 @@ public class SIProgression : MonoBehaviour, IGorillaSliceableSimple, GorillaQues
 	private void HandleInventoryUpdated()
 	{
 		this._inventoryReady = true;
-		Debug.Log("[SIProgression] Inventory ready");
 		this.UpdateCurrencyOnPlayer();
 		Action onInventoryReady = this.OnInventoryReady;
 		if (onInventoryReady == null)
@@ -356,7 +273,6 @@ public class SIProgression : MonoBehaviour, IGorillaSliceableSimple, GorillaQues
 	{
 		this.UpdateTree();
 		this.UpdateUnlockOnPlayer();
-		Debug.Log("[SIProgressionTester] IsNodeUnlocked: " + nodeId);
 		SIProgression.SINode nodeFromID = this.GetNodeFromID(nodeId);
 		if (!string.IsNullOrEmpty(nodeFromID.id))
 		{
@@ -599,7 +515,6 @@ public class SIProgression : MonoBehaviour, IGorillaSliceableSimple, GorillaQues
 		{
 			ProgressionManager.Instance.GetSIQuestStatus(new Action<ProgressionManager.UserQuestsStatusResponse>(this.ApplyServerQuestsStatus), null);
 		}
-		Debug.Log("[SIProgression] Loaded quests from server " + JsonConvert.SerializeObject(this.questSourceList.quests));
 	}
 
 	private void LoadQuestsFromLocalJson()
@@ -855,7 +770,7 @@ public class SIProgression : MonoBehaviour, IGorillaSliceableSimple, GorillaQues
 			return;
 		}
 		this.redeemingQuestInProgress[questIndex] = true;
-		ProgressionManager.Instance.CompleteSIQuest(quest, delegate(ProgressionManager.UserQuestsStatusResponse status)
+		ProgressionManager.Instance.CompleteSIQuest(quest.questID, delegate(ProgressionManager.UserQuestsStatusResponse status)
 		{
 			this.OnSuccessfulQuestRedeem(questIndex, quest, status);
 		}, delegate(string err)
@@ -1011,7 +926,7 @@ public class SIProgression : MonoBehaviour, IGorillaSliceableSimple, GorillaQues
 				{
 					int num5 = (num4 + j) % this.questSourceList.quests.Count;
 					RotatingQuest questById3 = this.questSourceList.GetQuestById(num5);
-					if (questById3 != null && questById3.isQuestActive && this.<SelectActiveQuests>g__GetMatchingCategoryCount|176_0(questById3) < this.perCategoryQuestLimit)
+					if (questById3 != null && questById3.isQuestActive && this.<SelectActiveQuests>g__GetMatchingCategoryCount|173_0(questById3) < this.perCategoryQuestLimit)
 					{
 						bool flag = false;
 						for (int k = 0; k < this.activeQuestIds.Length; k++)
@@ -1327,7 +1242,7 @@ public class SIProgression : MonoBehaviour, IGorillaSliceableSimple, GorillaQues
 	}
 
 	[CompilerGenerated]
-	private int <SelectActiveQuests>g__GetMatchingCategoryCount|176_0(RotatingQuest quest)
+	private int <SelectActiveQuests>g__GetMatchingCategoryCount|173_0(RotatingQuest quest)
 	{
 		if (quest.category == QuestCategory.NONE)
 		{

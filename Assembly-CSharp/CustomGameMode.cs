@@ -572,13 +572,10 @@ public sealed class CustomGameMode : GorillaGameManager
 				{
 					Transform transform = key.transform;
 					Bindings.LuauGameObject* ptr = (Bindings.LuauGameObject*)(void*)keyValuePair.Value;
-					if (*(int*)(void*)((IntPtr)((void*)ptr) + sizeof(Bindings.LuauGameObject)) == 1)
-					{
-						Vector3 position = ptr->Position;
-						position = new Vector3((float)Math.Round((double)position.x, 4), (float)Math.Round((double)position.y, 4), (float)Math.Round((double)position.z, 4));
-						transform.SetPositionAndRotation(position, ptr->Rotation);
-						transform.localScale = ptr->Scale;
-					}
+					Vector3 position = ptr->Position;
+					position = new Vector3((float)Math.Round((double)position.x, 4), (float)Math.Round((double)position.y, 4), (float)Math.Round((double)position.z, 4));
+					transform.SetPositionAndRotation(position, ptr->Rotation);
+					transform.localScale = ptr->Scale;
 				}
 			}
 		}
@@ -670,7 +667,6 @@ public sealed class CustomGameMode : GorillaGameManager
 					ptr3->Position = position;
 					ptr3->Rotation = transform.rotation;
 					ptr3->Scale = transform.localScale;
-					*(int*)(void*)((IntPtr)((void*)ptr3) + sizeof(Bindings.LuauGameObject)) = 0;
 				}
 			}
 			Bindings.UpdateInputs();

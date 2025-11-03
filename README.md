@@ -1,2 +1,4 @@
-# UpdateTracker
-Tracks updates for Gorilla Tag
+# 🔄️ UpdateTracker
+This repository is meant to track code updates with Gorilla Tag to help assist developers with their modifications and for archival purposes.
+
+> All files are property of [Another Axiom LLC](https://github.com/Another-Axiom) and are only preserved for archival of game updates, and no game resources or assets are provided in the process. Gorilla Tag is a free and publically available game for anyone to download, and by publishing the decompilation of the code for Gorilla Tag, I am ensuring that no content given here is in any violation of any terms of service or rules of Gorilla Tag, as [official Another Axiom employees have publically published copies of the prepackaged assemblies of Gorilla Tag.](https://github.com/The-Graze/Grate) I will fully oblidge and consent to any takedowns of any or all files that wish to be removed upon human request via mail prior to any DMCA or violating takedowns.

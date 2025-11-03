@@ -1,0 +1,4 @@
+*.sln
+*.csproj
+Assembly-CSharp/Bindings.cs
+Assembly-CSharp/BurstClassInfo.cs

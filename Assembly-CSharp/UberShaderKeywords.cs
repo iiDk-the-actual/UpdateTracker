@@ -1,0 +1,134 @@
+﻿using System;
+
+public static class UberShaderKeywords
+{
+	public const string STEREO_INSTANCING_ON = "STEREO_INSTANCING_ON";
+
+	public const string UNITY_SINGLE_PASS_STEREO = "UNITY_SINGLE_PASS_STEREO";
+
+	public const string STEREO_MULTIVIEW_ON = "STEREO_MULTIVIEW_ON";
+
+	public const string STEREO_CUBEMAP_RENDER_ON = "STEREO_CUBEMAP_RENDER_ON";
+
+	public const string _GLOBAL_ZONE_LIQUID_TYPE__WATER = "_GLOBAL_ZONE_LIQUID_TYPE__WATER";
+
+	public const string _GLOBAL_ZONE_LIQUID_TYPE__LAVA = "_GLOBAL_ZONE_LIQUID_TYPE__LAVA";
+
+	public const string _ZONE_LIQUID_SHAPE__CYLINDER = "_ZONE_LIQUID_SHAPE__CYLINDER";
+
+	public const string _USE_TEXTURE = "_USE_TEXTURE";
+
+	public const string USE_TEXTURE__AS_MASK = "USE_TEXTURE__AS_MASK";
+
+	public const string _USE_WEATHER_MAP = "_USE_WEATHER_MAP";
+
+	public const string _ALPHA_DETAIL_MAP = "_ALPHA_DETAIL_MAP";
+
+	public const string _WATER_EFFECT = "_WATER_EFFECT";
+
+	public const string _HEIGHT_BASED_WATER_EFFECT = "_HEIGHT_BASED_WATER_EFFECT";
+
+	public const string _ALPHATEST_ON = "_ALPHATEST_ON";
+
+	public const string _MAINTEX_ROTATE = "_MAINTEX_ROTATE";
+
+	public const string _UV_WAVE_WARP = "_UV_WAVE_WARP";
+
+	public const string _LIQUID_VOLUME = "_LIQUID_VOLUME";
+
+	public const string _LIQUID_CONTAINER = "_LIQUID_CONTAINER";
+
+	public const string _EMISSION = "_EMISSION";
+
+	public const string _EMISSION_USE_UV_WAVE_WARP = "_EMISSION_USE_UV_WAVE_WARP";
+
+	public const string _USE_DEFORM_MAP = "_USE_DEFORM_MAP";
+
+	public const string _USE_DAY_NIGHT_LIGHTMAP = "_USE_DAY_NIGHT_LIGHTMAP";
+
+	public const string _USE_TEX_ARRAY_ATLAS = "_USE_TEX_ARRAY_ATLAS";
+
+	public const string _CRYSTAL_EFFECT = "_CRYSTAL_EFFECT";
+
+	public const string _EYECOMP = "_EYECOMP";
+
+	public const string _MOUTHCOMP = "_MOUTHCOMP";
+
+	public const string _ALPHA_BLUE_LIVE_ON = "_ALPHA_BLUE_LIVE_ON";
+
+	public const string _GRID_EFFECT = "_GRID_EFFECT";
+
+	public const string _REFLECTIONS = "_REFLECTIONS";
+
+	public const string _REFLECTIONS_BOX_PROJECT = "_REFLECTIONS_BOX_PROJECT";
+
+	public const string _REFLECTIONS_USE_NORMAL_TEX = "_REFLECTIONS_USE_NORMAL_TEX";
+
+	public const string _VERTEX_ROTATE = "_VERTEX_ROTATE";
+
+	public const string _VERTEX_ANIM_FLAP = "_VERTEX_ANIM_FLAP";
+
+	public const string _VERTEX_ANIM_WAVE = "_VERTEX_ANIM_WAVE";
+
+	public const string _VERTEX_ANIM_WAVE_DEBUG = "_VERTEX_ANIM_WAVE_DEBUG";
+
+	public const string _VERTEX_LIGHTING = "_VERTEX_LIGHTING";
+
+	public const string _GRADIENT_MAP_ON = "_GRADIENT_MAP_ON";
+
+	public const string _PARALLAX = "_PARALLAX";
+
+	public const string _PARALLAX_AA = "_PARALLAX_AA";
+
+	public const string _PARALLAX_PLANAR = "_PARALLAX_PLANAR";
+
+	public const string _MASK_MAP_ON = "_MASK_MAP_ON";
+
+	public const string _FX_LAVA_LAMP = "_FX_LAVA_LAMP";
+
+	public const string _INNER_GLOW = "_INNER_GLOW";
+
+	public const string _STEALTH_EFFECT = "_STEALTH_EFFECT";
+
+	public const string _UV_SHIFT = "_UV_SHIFT";
+
+	public const string _TEXEL_SNAP_UVS = "_TEXEL_SNAP_UVS";
+
+	public const string _UNITY_EDIT_MODE = "_UNITY_EDIT_MODE";
+
+	public const string _GT_EDITOR_TIME = "_GT_EDITOR_TIME";
+
+	public const string _DEBUG_PAWN_DATA = "_DEBUG_PAWN_DATA";
+
+	public const string _COLOR_GRADE_PROTANOMALY = "_COLOR_GRADE_PROTANOMALY";
+
+	public const string _COLOR_GRADE_PROTANOPIA = "_COLOR_GRADE_PROTANOPIA";
+
+	public const string _COLOR_GRADE_DEUTERANOMALY = "_COLOR_GRADE_DEUTERANOMALY";
+
+	public const string _COLOR_GRADE_DEUTERANOPIA = "_COLOR_GRADE_DEUTERANOPIA";
+
+	public const string _COLOR_GRADE_TRITANOMALY = "_COLOR_GRADE_TRITANOMALY";
+
+	public const string _COLOR_GRADE_TRITANOPIA = "_COLOR_GRADE_TRITANOPIA";
+
+	public const string _COLOR_GRADE_ACHROMATOMALY = "_COLOR_GRADE_ACHROMATOMALY";
+
+	public const string _COLOR_GRADE_ACHROMATOPSIA = "_COLOR_GRADE_ACHROMATOPSIA";
+
+	public const string LIGHTMAP_ON = "LIGHTMAP_ON";
+
+	public const string DIRLIGHTMAP_COMBINED = "DIRLIGHTMAP_COMBINED";
+
+	public const string INSTANCING_ON = "INSTANCING_ON";
+
+	public static readonly string[] namesArray = new string[]
+	{
+		"STEREO_INSTANCING_ON", "UNITY_SINGLE_PASS_STEREO", "STEREO_MULTIVIEW_ON", "STEREO_CUBEMAP_RENDER_ON", "_GLOBAL_ZONE_LIQUID_TYPE__WATER", "_GLOBAL_ZONE_LIQUID_TYPE__LAVA", "_ZONE_LIQUID_SHAPE__CYLINDER", "_USE_TEXTURE", "USE_TEXTURE__AS_MASK", "_USE_WEATHER_MAP",
+		"_ALPHA_DETAIL_MAP", "_WATER_EFFECT", "_HEIGHT_BASED_WATER_EFFECT", "_ALPHATEST_ON", "_MAINTEX_ROTATE", "_UV_WAVE_WARP", "_LIQUID_VOLUME", "_LIQUID_CONTAINER", "_EMISSION", "_EMISSION_USE_UV_WAVE_WARP",
+		"_USE_DEFORM_MAP", "_USE_DAY_NIGHT_LIGHTMAP", "_USE_TEX_ARRAY_ATLAS", "_CRYSTAL_EFFECT", "_EYECOMP", "_MOUTHCOMP", "_ALPHA_BLUE_LIVE_ON", "_GRID_EFFECT", "_REFLECTIONS", "_REFLECTIONS_BOX_PROJECT",
+		"_REFLECTIONS_USE_NORMAL_TEX", "_VERTEX_ROTATE", "_VERTEX_ANIM_FLAP", "_VERTEX_ANIM_WAVE", "_VERTEX_ANIM_WAVE_DEBUG", "_VERTEX_LIGHTING", "_GRADIENT_MAP_ON", "_PARALLAX", "_PARALLAX_AA", "_PARALLAX_PLANAR",
+		"_MASK_MAP_ON", "_FX_LAVA_LAMP", "_INNER_GLOW", "_STEALTH_EFFECT", "_UV_SHIFT", "_TEXEL_SNAP_UVS", "_UNITY_EDIT_MODE", "_GT_EDITOR_TIME", "_DEBUG_PAWN_DATA", "_COLOR_GRADE_PROTANOMALY",
+		"_COLOR_GRADE_PROTANOPIA", "_COLOR_GRADE_DEUTERANOMALY", "_COLOR_GRADE_DEUTERANOPIA", "_COLOR_GRADE_TRITANOMALY", "_COLOR_GRADE_TRITANOPIA", "_COLOR_GRADE_ACHROMATOMALY", "_COLOR_GRADE_ACHROMATOPSIA", "LIGHTMAP_ON", "DIRLIGHTMAP_COMBINED", "INSTANCING_ON"
+	};
+}

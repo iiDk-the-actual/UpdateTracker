@@ -1,0 +1,40 @@
+﻿using System;
+
+[Flags]
+public enum UnityLayerMask
+{
+	Everything = -1,
+	Nothing = 0,
+	Default = 1,
+	TransparentFX = 2,
+	IgnoreRaycast = 4,
+	Zone = 8,
+	Water = 16,
+	UI = 32,
+	MeshBakerAtlas = 64,
+	GorillaEquipment = 128,
+	GorillaBodyCollider = 256,
+	GorillaObject = 512,
+	GorillaHand = 1024,
+	GorillaTrigger = 2048,
+	MetaReportScreen = 4096,
+	GorillaHead = 8192,
+	GorillaTagCollider = 16384,
+	GorillaBoundary = 32768,
+	GorillaEquipmentContainer = 65536,
+	LCKHide = 131072,
+	GorillaInteractable = 262144,
+	FirstPersonOnly = 524288,
+	GorillaParticle = 1048576,
+	GorillaCosmetics = 2097152,
+	MirrorOnly = 4194304,
+	GorillaThrowable = 8388608,
+	GorillaHandSocket = 16777216,
+	GorillaCosmeticParticle = 33554432,
+	BuilderProp = 67108864,
+	NoMirror = 134217728,
+	GorillaSlingshotCollider = 268435456,
+	RopeSwing = 536870912,
+	Prop = 1073741824,
+	Bake = -2147483648
+}

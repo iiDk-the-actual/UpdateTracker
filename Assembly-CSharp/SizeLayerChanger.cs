@@ -1,0 +1,117 @@
+﻿using System;
+using GorillaLocomotion;
+using UnityEngine;
+
+public class SizeLayerChanger : MonoBehaviour
+{
+	public int SizeLayerMask
+	{
+		get
+		{
+			int num = 0;
+			if (this.affectLayerA)
+			{
+				num |= 1;
+			}
+			if (this.affectLayerB)
+			{
+				num |= 2;
+			}
+			if (this.affectLayerC)
+			{
+				num |= 4;
+			}
+			if (this.affectLayerD)
+			{
+				num |= 8;
+			}
+			return num;
+		}
+	}
+
+	private void Awake()
+	{
+		this.minScale = Mathf.Max(this.minScale, 0.01f);
+	}
+
+	public void OnTriggerEnter(Collider other)
+	{
+		if (!this.triggerWithBodyCollider && !other.GetComponent<SphereCollider>())
+		{
+			return;
+		}
+		VRRig vrrig;
+		if (this.triggerWithBodyCollider)
+		{
+			if (other != GTPlayer.Instance.bodyCollider)
+			{
+				return;
+			}
+			vrrig = GorillaTagger.Instance.offlineVRRig;
+		}
+		else
+		{
+			vrrig = other.attachedRigidbody.gameObject.GetComponent<VRRig>();
+		}
+		if (vrrig == null)
+		{
+			return;
+		}
+		if (this.applyOnTriggerEnter)
+		{
+			vrrig.sizeManager.currentSizeLayerMaskValue = this.SizeLayerMask;
+		}
+	}
+
+	public void OnTriggerExit(Collider other)
+	{
+		if (!this.triggerWithBodyCollider && !other.GetComponent<SphereCollider>())
+		{
+			return;
+		}
+		VRRig vrrig;
+		if (this.triggerWithBodyCollider)
+		{
+			if (other != GTPlayer.Instance.bodyCollider)
+			{
+				return;
+			}
+			vrrig = GorillaTagger.Instance.offlineVRRig;
+		}
+		else
+		{
+			vrrig = other.attachedRigidbody.gameObject.GetComponent<VRRig>();
+		}
+		if (vrrig == null)
+		{
+			return;
+		}
+		if (this.applyOnTriggerExit)
+		{
+			vrrig.sizeManager.currentSizeLayerMaskValue = this.SizeLayerMask;
+		}
+	}
+
+	public float maxScale;
+
+	public float minScale;
+
+	public bool isAssurance;
+
+	public bool affectLayerA = true;
+
+	public bool affectLayerB = true;
+
+	public bool affectLayerC = true;
+
+	public bool affectLayerD = true;
+
+	[SerializeField]
+	private bool applyOnTriggerEnter = true;
+
+	[SerializeField]
+	private bool applyOnTriggerExit;
+
+	[SerializeField]
+	private bool triggerWithBodyCollider;
+}

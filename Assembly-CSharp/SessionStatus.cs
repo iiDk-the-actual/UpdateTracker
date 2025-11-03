@@ -1,0 +1,10 @@
+﻿using System;
+
+public enum SessionStatus
+{
+	PASS,
+	PROHIBITED,
+	CHALLENGE,
+	CHALLENGE_SESSION_UPGRADE,
+	PENDING_AGE_APPEAL
+}

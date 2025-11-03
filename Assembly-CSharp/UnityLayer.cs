@@ -1,0 +1,37 @@
+﻿using System;
+
+public enum UnityLayer
+{
+	Default,
+	TransparentFX,
+	IgnoreRaycast,
+	Zone,
+	Water,
+	UI,
+	MeshBakerAtlas,
+	GorillaEquipment,
+	GorillaBodyCollider,
+	GorillaObject,
+	GorillaHand,
+	GorillaTrigger,
+	MetaReportScreen,
+	GorillaHead,
+	GorillaTagCollider,
+	GorillaBoundary,
+	GorillaEquipmentContainer,
+	LCKHide,
+	GorillaInteractable,
+	FirstPersonOnly,
+	GorillaParticle,
+	GorillaCosmetics,
+	MirrorOnly,
+	GorillaThrowable,
+	GorillaHandSocket,
+	GorillaCosmeticParticle,
+	BuilderProp,
+	NoMirror,
+	GorillaSlingshotCollider,
+	RopeSwing,
+	Prop,
+	Bake
+}

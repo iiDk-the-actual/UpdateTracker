@@ -2,7 +2,8 @@
 
 public enum SIUpgradeType
 {
-	Initialize = -1,
+	InvalidNode = -2,
+	Initialize,
 	Thruster_Unlock,
 	Thruster_Jet,
 	Thruster_Prop,
@@ -24,6 +25,9 @@ public enum SIUpgradeType
 	Stilt_Muscle_Fusion,
 	Stilt_Short,
 	Stilt_Long,
+	Stilt_Motorized,
+	Stilt_Motorized_Triple,
+	Stilt_Turkey_Coma,
 	Grenade_Concussion_Unlock = 200,
 	Grenade_Antigravity_Unlock,
 	Grenade_Concussion_Stun,
@@ -54,6 +58,7 @@ public enum SIUpgradeType
 	Dash_Yoyo_Stun,
 	Dash_Yoyo_Tag,
 	Dash_Yoyo_Teleport,
+	Dash_Tentacle_Placeholder,
 	Platform_Unlock = 400,
 	Platform_Cooldown,
 	Platform_Duration,
@@ -64,5 +69,12 @@ public enum SIUpgradeType
 	Tapteleport_Stealth,
 	Tapteleport_Portal_Selection,
 	Tapteleport_Keep_Velocity,
-	Tapteleport_Infinite_Use
+	Tapteleport_Infinite_Use,
+	Tentacle_Unlock = 600,
+	AirGrab_Unlock = 700,
+	LaserZipline_Unlock,
+	SlashDash_Unlock = 800,
+	SlipMitt_Unlock = 900,
+	Blaster_Weak_Unlock = 1000,
+	Blaster_Charge_Unlock
 }

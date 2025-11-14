@@ -20,6 +20,8 @@ public class PlayFabAuthenticatorSettingsScriptableObject : ScriptableObject
 
 	public string MmrApiBaseUrl;
 
+	public string ModerationApiBaseUrl;
+
 	public string ProgressionApiBaseUrl;
 
 	public string TitleDataApiBaseUrl;

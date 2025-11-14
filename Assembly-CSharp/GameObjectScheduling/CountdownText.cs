@@ -55,6 +55,10 @@ namespace GameObjectScheduling
 				this.displayTextFormat = this.CountdownTo.FormatString;
 			}
 			this.displayText.text = this.CountdownTo.DefaultString;
+			if (!this.shouldLocalize)
+			{
+				return;
+			}
 			this._locTextComp = base.GetComponent<LocalizedText>();
 			if (this._locTextComp == null)
 			{

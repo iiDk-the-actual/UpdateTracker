@@ -180,6 +180,11 @@ public class CustomMapsGameManager : MonoBehaviour, IGameEntityZoneComponent
 		return this.gameEntityManager.RequestCreateItem(staticHash, position, rotation, (long)enemyTypeId);
 	}
 
+	public long ProcessMigratedGameEntityCreateData(GameEntity entity, long createData)
+	{
+		return createData;
+	}
+
 	public bool ValidateMigratedGameEntity(int netId, int entityTypeId, Vector3 position, Quaternion rotation, long createData, int actorNr)
 	{
 		return false;

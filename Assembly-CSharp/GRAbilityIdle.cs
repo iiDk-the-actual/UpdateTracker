@@ -14,9 +14,16 @@ public class GRAbilityIdle : GRAbilityBase
 	public override void Start()
 	{
 		base.Start();
+		this.agent.navAgent.isStopped = true;
 		this.PlayAnim(this.animName, 0.3f, this.animSpeed);
 		this.animLoops = 0;
 		this.events.Reset();
+	}
+
+	public override void Stop()
+	{
+		base.Stop();
+		this.agent.navAgent.isStopped = false;
 	}
 
 	public override bool IsDone()

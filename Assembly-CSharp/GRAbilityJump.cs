@@ -13,24 +13,24 @@ public class GRAbilityJump : GRAbilityBase
 		this.isActive = false;
 	}
 
-	public void SetupJump(Vector3 start, Vector3 end)
+	public void SetupJump(Vector3 start, Vector3 end, float heightScale = 1f, float speedScale = 1f)
 	{
 		this.elapsedTime = 0f;
 		this.startPos = start;
 		this.endPos = end;
 		float magnitude = (this.endPos - this.startPos).magnitude;
-		this.controlPoint = (this.startPos + this.endPos) / 2f + new Vector3(0f, magnitude, 0f);
-		this.jumpTime = magnitude / this.jumpSpeed;
+		this.controlPoint = (this.startPos + this.endPos) / 2f + new Vector3(0f, magnitude * heightScale, 0f);
+		this.jumpTime = magnitude / (this.jumpSpeed * speedScale);
 	}
 
 	public void SetupJumpFromLinkData(OffMeshLinkData linkData)
 	{
 		if ((this.root.position - linkData.startPos).sqrMagnitude < (this.root.position - linkData.endPos).sqrMagnitude)
 		{
-			this.SetupJump(linkData.startPos, linkData.endPos);
+			this.SetupJump(linkData.startPos, linkData.endPos, 1f, 1f);
 			return;
 		}
-		this.SetupJump(linkData.endPos, linkData.startPos);
+		this.SetupJump(linkData.endPos, linkData.startPos, 1f, 1f);
 	}
 
 	public override void Start()
@@ -39,14 +39,18 @@ public class GRAbilityJump : GRAbilityBase
 		this.elapsedTime = 0f;
 		this.isActive = true;
 		this.PlayAnim(this.animationData.animName, 0.05f, this.animationData.speed);
+		this.agent.navAgent.isStopped = true;
 		this.agent.SetDisableNetworkSync(true);
 		this.agent.pauseEntityThink = true;
+		this.soundJump.Play(this.audioSource);
 	}
 
 	public override void Stop()
 	{
 		base.Stop();
+		this.agent.navAgent.Warp(this.endPos);
 		this.agent.navAgent.CompleteOffMeshLink();
+		this.agent.navAgent.isStopped = false;
 		this.isActive = false;
 		this.agent.SetDisableNetworkSync(false);
 		this.agent.pauseEntityThink = false;
@@ -103,4 +107,6 @@ public class GRAbilityJump : GRAbilityBase
 	public AnimationData animationData;
 
 	public float jumpSpeed = 3f;
+
+	public AbilitySound soundJump;
 }

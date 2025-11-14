@@ -164,7 +164,6 @@ public class GamePlayer : MonoBehaviour
 		if (NetworkSystem.Instance.SessionIsPrivate)
 		{
 			this.DidJoinWithItems = false;
-			this.AdditionalDataInitialized = false;
 		}
 	}
 
@@ -746,6 +745,8 @@ public class GamePlayer : MonoBehaviour
 	public CallLimiter netSnapLimiter;
 
 	public Action OnPlayerInitialized;
+
+	public Action OnPlayerLeftZone;
 
 	private bool grabbingDisabled;
 

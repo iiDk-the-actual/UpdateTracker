@@ -85,11 +85,11 @@ public class SIGadgetDispenser : MonoBehaviour, ITouchScreenStation
 
 	private void CollectButtonColliders()
 	{
-		SIGadgetDispenser.<>c__DisplayClass51_0 CS$<>8__locals1;
+		SIGadgetDispenser.<>c__DisplayClass52_0 CS$<>8__locals1;
 		CS$<>8__locals1.buttons = base.GetComponentsInChildren<SITouchscreenButton>(true).ToList<SITouchscreenButton>();
-		SIGadgetDispenser.<CollectButtonColliders>g__RemoveButtonsInside|51_2((from d in base.GetComponentsInChildren<DestroyIfNotBeta>()
+		SIGadgetDispenser.<CollectButtonColliders>g__RemoveButtonsInside|52_2((from d in base.GetComponentsInChildren<DestroyIfNotBeta>()
 			select d.gameObject).ToArray<GameObject>(), ref CS$<>8__locals1);
-		SIGadgetDispenser.<CollectButtonColliders>g__RemoveButtonsInside|51_2(new GameObject[] { this.gadgetDispensedScreen, this.gadgetsHelpScreen }, ref CS$<>8__locals1);
+		SIGadgetDispenser.<CollectButtonColliders>g__RemoveButtonsInside|52_2(new GameObject[] { this.gadgetDispensedScreen, this.gadgetsHelpScreen }, ref CS$<>8__locals1);
 		this._nonPopupButtonColliders = CS$<>8__locals1.buttons.Select((SITouchscreenButton b) => b.GetComponent<Collider>()).ToList<Collider>();
 	}
 
@@ -162,7 +162,7 @@ public class SIGadgetDispenser : MonoBehaviour, ITouchScreenStation
 	{
 		this.helpScreenIndex = Mathf.Clamp((int)stream.ReceiveNext(), 0, this.helpPopupScreens.Length - 1);
 		this._currentNode = (int)stream.ReceiveNext();
-		if (this.CurrentNode == null)
+		if (this.CurrentNode == null && this.CurrentPage != null && this.CurrentPage.AllNodes.Count > 0 && this.CurrentPage.AllNodes[0].Value != null)
 		{
 			this._currentNode = (int)this.CurrentPage.AllNodes[0].Value.upgradeType;
 		}
@@ -187,7 +187,15 @@ public class SIGadgetDispenser : MonoBehaviour, ITouchScreenStation
 	public void ZoneDataSerializeRead(BinaryReader reader)
 	{
 		this.helpScreenIndex = Mathf.Clamp(reader.ReadInt32(), 0, this.helpPopupScreens.Length - 1);
-		this._currentNode = Mathf.Clamp(reader.ReadInt32(), 0, this.CurrentPage.AllNodes.Count - 1);
+		int num = reader.ReadInt32();
+		if (this.CurrentPage != null && this.CurrentPage.AllNodes != null)
+		{
+			this._currentNode = Mathf.Clamp(num, 0, this.CurrentPage.AllNodes.Count - 1);
+		}
+		else
+		{
+			this._currentNode = 0;
+		}
 		SIGadgetDispenser.GadgetDispenserTerminalState gadgetDispenserTerminalState = (SIGadgetDispenser.GadgetDispenserTerminalState)reader.ReadInt32();
 		SIGadgetDispenser.GadgetDispenserTerminalState gadgetDispenserTerminalState2 = (SIGadgetDispenser.GadgetDispenserTerminalState)reader.ReadInt32();
 		if (this.ActivePlayer == null || !this.ActivePlayer.gameObject.activeInHierarchy || !Enum.IsDefined(typeof(SIGadgetDispenser.GadgetDispenserTerminalState), gadgetDispenserTerminalState) || !Enum.IsDefined(typeof(SIGadgetDispenser.GadgetDispenserTerminalState), gadgetDispenserTerminalState2))
@@ -297,10 +305,17 @@ public class SIGadgetDispenser : MonoBehaviour, ITouchScreenStation
 
 	public void TouchscreenButtonPressed(SITouchscreenButton.SITouchscreenButtonType buttonType, int data, int actorNr)
 	{
+		if (actorNr == SIPlayer.LocalPlayer.ActorNr && (this.ActivePlayer == null || this.ActivePlayer != SIPlayer.LocalPlayer))
+		{
+			this.parentTerminal.PlayWrongPlayerBuzz(this.uiCenter);
+		}
+		else
+		{
+			this.touchSoundBankPlayer.Play();
+		}
 		if (!this.IsAuthority)
 		{
 			this.parentTerminal.TouchscreenButtonPressed(buttonType, data, actorNr, SICombinedTerminal.TerminalSubFunction.GadgetDispenser);
-			this.touchSoundBankPlayer.Play();
 			return;
 		}
 		if (actorNr != this.ActivePlayer.ActorNr)
@@ -411,7 +426,6 @@ public class SIGadgetDispenser : MonoBehaviour, ITouchScreenStation
 				if (num >= player.totalGadgetLimit)
 				{
 					this.GameEntityManager.RequestDestroyItem(gameEntityFromNetId.id);
-					player.activePlayerGadgets.RemoveAt(i);
 					break;
 				}
 			}
@@ -473,7 +487,7 @@ public class SIGadgetDispenser : MonoBehaviour, ITouchScreenStation
 	}
 
 	[CompilerGenerated]
-	internal static void <CollectButtonColliders>g__RemoveButtonsInside|51_2(GameObject[] roots, ref SIGadgetDispenser.<>c__DisplayClass51_0 A_1)
+	internal static void <CollectButtonColliders>g__RemoveButtonsInside|52_2(GameObject[] roots, ref SIGadgetDispenser.<>c__DisplayClass52_0 A_1)
 	{
 		for (int i = 0; i < roots.Length; i++)
 		{
@@ -515,6 +529,8 @@ public class SIGadgetDispenser : MonoBehaviour, ITouchScreenStation
 	public Color active;
 
 	public Color notActive;
+
+	public Transform uiCenter;
 
 	[Header("Popup Shared")]
 	public GameObject popupScreen;

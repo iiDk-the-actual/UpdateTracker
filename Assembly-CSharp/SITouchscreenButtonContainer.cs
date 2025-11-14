@@ -11,7 +11,9 @@ public class SITouchscreenButtonContainer : MonoBehaviour
 
 	public int data;
 
-	public Image backGround;
+	public RectTransform backGround;
+
+	public RectTransform backgroundShadow;
 
 	public Image foreGround;
 

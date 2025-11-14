@@ -74,7 +74,7 @@ public class LocalisationManager : MonoBehaviour
 		{
 			for (int j = 0; j < this._localisationFonts[i].locales.Count; j++)
 			{
-				if (!LocalisationManager._localisationFontDict.ContainsKey(this._localisationFonts[i].locales[j].Identifier.Code) && !(this._localisationFonts[i].fontAsset == null))
+				if (!(this._localisationFonts[i].locales[j] == null) && !LocalisationManager._localisationFontDict.ContainsKey(this._localisationFonts[i].locales[j].Identifier.Code) && !(this._localisationFonts[i].fontAsset == null))
 				{
 					this._localisationFonts[i].fontAsset == null;
 					LocalisationManager._localisationFontDict.Add(this._localisationFonts[i].locales[j].Identifier.Code, this._localisationFonts[i]);

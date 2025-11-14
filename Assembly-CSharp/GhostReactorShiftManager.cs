@@ -870,7 +870,8 @@ public class GhostReactorShiftManager : MonoBehaviourTick
 		int num = this.reactor.GetDepthLevel() + 1;
 		int num2 = num / 4 + 1 + ((num % 5 == 4) ? 2 : 0);
 		this.shiftRewardCoresForMothership = currLevelGenConfig.coresRequired + num2;
-		this.coresRequiredToDelveDeeper = (int)(this.reactor.difficultyScalingForCurrentFloor * (float)currLevelGenConfig.coresRequired) + num2;
+		this.coresRequiredToDelveDeeper = ((currLevelGenConfig.coresRequired > 0) ? ((int)(this.reactor.difficultyScalingForCurrentFloor * (float)currLevelGenConfig.coresRequired) + num2) : 0);
+		this.killsRequiredToDelveDeeper = currLevelGenConfig.minEnemyKills;
 		this.shiftRewardCredits = currLevelGenConfig.coresRequired * 5;
 		this.sentientCoresRequiredToDelveDeeper = (int)(this.reactor.difficultyScalingForCurrentFloor * (float)currLevelGenConfig.sentientCoresRequired);
 		this.shiftDurationMinutes = (float)(currLevelGenConfig.shiftDuration / 60);
@@ -1110,6 +1111,8 @@ public class GhostReactorShiftManager : MonoBehaviourTick
 	public int coresRequiredToDelveDeeper;
 
 	public int sentientCoresRequiredToDelveDeeper;
+
+	public List<GREnemyCount> killsRequiredToDelveDeeper;
 
 	public int maxPlayerDeaths;
 

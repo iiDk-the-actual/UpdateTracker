@@ -20,7 +20,7 @@ public class CosmeticBoundaryTrigger : GorillaTriggerBox
 			GorillaTelemetry.PostShopEvent(this.rigRef, GTShopEventType.item_try_on, this.rigRef.tryOnSet.items);
 		}
 		this.rigRef.inTryOnRoom = true;
-		this.rigRef.LocalUpdateCosmeticsWithTryon(this.rigRef.cosmeticSet, this.rigRef.tryOnSet);
+		this.rigRef.LocalUpdateCosmeticsWithTryon(this.rigRef.cosmeticSet, this.rigRef.tryOnSet, false);
 		this.rigRef.myBodyDockPositions.RefreshTransferrableItems();
 	}
 
@@ -43,7 +43,7 @@ public class CosmeticBoundaryTrigger : GorillaTriggerBox
 			CosmeticsController.instance.UpdateShoppingCart();
 			CosmeticsController.instance.UpdateWornCosmetics(true);
 		}
-		this.rigRef.LocalUpdateCosmeticsWithTryon(this.rigRef.cosmeticSet, this.rigRef.tryOnSet);
+		this.rigRef.LocalUpdateCosmeticsWithTryon(this.rigRef.cosmeticSet, this.rigRef.tryOnSet, false);
 		this.rigRef.myBodyDockPositions.RefreshTransferrableItems();
 	}
 

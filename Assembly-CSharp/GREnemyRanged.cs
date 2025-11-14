@@ -163,9 +163,9 @@ public class GREnemyRanged : MonoBehaviour, IGameEntityComponent, IGameEntitySer
 		this.abilityDie.Setup(this.agent, this.anim, this.audioSource, base.transform, this.headTransform, null);
 	}
 
-	private void OnAgentJumpRequested(Vector3 start, Vector3 end)
+	private void OnAgentJumpRequested(Vector3 start, Vector3 end, float heightScale, float speedScale)
 	{
-		this.abilityJump.SetupJump(start, end);
+		this.abilityJump.SetupJump(start, end, heightScale, speedScale);
 		this.SetBehavior(GREnemyRanged.Behavior.Jump, false);
 	}
 
@@ -372,19 +372,19 @@ public class GREnemyRanged : MonoBehaviour, IGameEntityComponent, IGameEntitySer
 		{
 		case GREnemyRanged.BodyState.Destroyed:
 			this.armor.SetHp(0);
-			GREnemyRanged.Hide(this.bones, true);
-			GREnemyRanged.Hide(this.always, true);
+			GREnemy.HideRenderers(this.bones, true);
+			GREnemy.HideRenderers(this.always, true);
 			this.DisableHeadOnShoulderAndHeadInHand();
 			return;
 		case GREnemyRanged.BodyState.Bones:
 			this.armor.SetHp(0);
-			GREnemyRanged.Hide(this.bones, false);
-			GREnemyRanged.Hide(this.always, false);
+			GREnemy.HideRenderers(this.bones, false);
+			GREnemy.HideRenderers(this.always, false);
 			return;
 		case GREnemyRanged.BodyState.Shell:
 			this.armor.SetHp(this.hp);
-			GREnemyRanged.Hide(this.bones, true);
-			GREnemyRanged.Hide(this.always, false);
+			GREnemy.HideRenderers(this.bones, true);
+			GREnemy.HideRenderers(this.always, false);
 			return;
 		default:
 			return;
@@ -885,21 +885,6 @@ public class GREnemyRanged : MonoBehaviour, IGameEntityComponent, IGameEntitySer
 				break;
 			default:
 				return;
-			}
-		}
-	}
-
-	public static void Hide(List<Renderer> renderers, bool hide)
-	{
-		if (renderers == null)
-		{
-			return;
-		}
-		for (int i = 0; i < renderers.Count; i++)
-		{
-			if (renderers[i] != null)
-			{
-				renderers[i].enabled = !hide;
 			}
 		}
 	}

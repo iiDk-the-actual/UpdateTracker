@@ -107,7 +107,7 @@ public class GRToolLantern : MonoBehaviour, IGRSummoningEntity
 			this.SetState(GRToolLantern.State.On);
 			if (Time.timeAsDouble > this.lastFlareDropTime + this.minFlareDropInterval && this.IsButtonHeld() && this.tool.HasEnoughEnergy() && this.trackedEntities.Count < this.maxSpawnedFlares && this.lanternFlarePrefab != null)
 			{
-				if (this.IsHeldLocal())
+				if (this.gameEntity.IsAuthority())
 				{
 					Vector3 vector = base.transform.rotation * this.flareSpawnoffset;
 					this.gameEntity.manager.RequestCreateItem(this.lanternFlarePrefab.name.GetStaticHash(), base.transform.position + vector, base.transform.rotation * Quaternion.Euler(10f, 0f, 10f), (long)this.gameEntity.GetNetId());

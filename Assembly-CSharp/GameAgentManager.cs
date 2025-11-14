@@ -386,7 +386,7 @@ public class GameAgentManager : NetworkComponent, ITickSystemTick
 		component.targetPlayer = NetPlayer.Get(player);
 	}
 
-	public void RequestJump(GameAgent agent, Vector3 start, Vector3 end)
+	public void RequestJump(GameAgent agent, Vector3 start, Vector3 end, float heightScale, float speedScale)
 	{
 		if (!this.IsAuthority())
 		{
@@ -396,17 +396,19 @@ public class GameAgentManager : NetworkComponent, ITickSystemTick
 		{
 			return;
 		}
-		agent.OnJumpRequested(start, end);
+		agent.OnJumpRequested(start, end, heightScale, speedScale);
 		base.SendRPC("ApplyJumpRPC", RpcTarget.Others, new object[]
 		{
 			this.entityManager.GetNetIdFromEntityId(agent.entity.id),
 			start,
-			end
+			end,
+			heightScale,
+			speedScale
 		});
 	}
 
 	[PunRPC]
-	public void ApplyJumpRPC(int agentNetId, Vector3 start, Vector3 end, PhotonMessageInfo info)
+	public void ApplyJumpRPC(int agentNetId, Vector3 start, Vector3 end, float heightScale, float speedScale, PhotonMessageInfo info)
 	{
 		if (this.IsValidClientRPC(info.Sender, agentNetId) && !this.m_RpcSpamChecks.IsSpamming(GameAgentManager.RPC.ApplyTarget))
 		{
@@ -414,7 +416,7 @@ public class GameAgentManager : NetworkComponent, ITickSystemTick
 			if ((in start).IsValid(in num))
 			{
 				float num2 = 10000f;
-				if ((in end).IsValid(in num2) && this.entityManager.IsPositionInZone(start) && this.entityManager.IsPositionInZone(end) && this.entityManager.IsEntityNearPosition(agentNetId, start, 16f))
+				if ((in end).IsValid(in num2) && this.entityManager.IsPositionInZone(start) && this.entityManager.IsPositionInZone(end) && this.entityManager.IsEntityNearPosition(agentNetId, start, 16f) && heightScale <= 5f && speedScale <= 5f)
 				{
 					if ((end - start).sqrMagnitude > 625f)
 					{
@@ -430,7 +432,7 @@ public class GameAgentManager : NetworkComponent, ITickSystemTick
 					{
 						return;
 					}
-					component.OnJumpRequested(start, end);
+					component.OnJumpRequested(start, end, heightScale, speedScale);
 					return;
 				}
 			}

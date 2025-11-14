@@ -57,7 +57,7 @@ public class HauntedObject : MonoBehaviour
 		}
 		if (this.rattle)
 		{
-			base.StartCoroutine("Shake");
+			base.StartCoroutine(this.Shake());
 		}
 		if (this.audioSource && this.hauntedSound)
 		{
@@ -69,13 +69,13 @@ public class HauntedObject : MonoBehaviour
 		}
 		if (this.TurnOffLight != null)
 		{
-			base.StartCoroutine("TurnOff");
+			base.StartCoroutine(this.TurnOff());
 		}
 		foreach (Animator animator in this.animators)
 		{
 			if (animator)
 			{
-				animator.SetTrigger("Haunted");
+				animator.SetTrigger(HauntedObject._animHaunted);
 			}
 		}
 	}
@@ -104,6 +104,12 @@ public class HauntedObject : MonoBehaviour
 		this.lightPassedTime = 0f;
 		yield break;
 	}
+
+	private static readonly int _animHaunted = Animator.StringToHash("Haunted");
+
+	private const string _lurkerGhost = "LurkerGhost";
+
+	private const string _wanderingGhost = "WanderingGhost";
 
 	[Tooltip("If this box is checked, then object will rattle when hunted")]
 	public bool rattle;

@@ -113,16 +113,39 @@ public class GRAbilityKeepDistance : GRAbilityBase
 			Vector3 vector = this.agent.transform.position - this.target.position;
 			vector.y = 0f;
 			Vector3 normalized = vector.normalized;
-			for (int i = 0; i < GRAbilityKeepDistance.rotations.Length; i++)
+			int i = 0;
+			while (i < GRAbilityKeepDistance.rotations.Length)
 			{
 				Vector3 vector2 = GRAbilityKeepDistance.rotations[i] * normalized;
 				float num = 2f;
+				Vector3 vector3 = position2 + vector2 * num;
 				NavMeshHit navMeshHit2;
-				NavMeshHit navMeshHit3;
-				if ((!NavMesh.Raycast(position2, position2 + vector2 * num, out navMeshHit2, this.walkableArea) || navMeshHit2.distance >= this.minBackupSpaceRequired) && NavMesh.SamplePosition(navMeshHit2.position, out navMeshHit3, 1f, this.walkableArea))
+				if (!NavMesh.Raycast(position2, vector3, out navMeshHit2, this.walkableArea))
 				{
-					return navMeshHit3.position;
+					goto IL_00D6;
 				}
+				if (navMeshHit2.distance >= this.minBackupSpaceRequired)
+				{
+					vector3 = navMeshHit2.position;
+					goto IL_00D6;
+				}
+				IL_0128:
+				i++;
+				continue;
+				IL_00D6:
+				NavMeshHit navMeshHit3;
+				if (!NavMesh.SamplePosition(vector3, out navMeshHit3, 1f, this.walkableArea))
+				{
+					goto IL_0128;
+				}
+				Vector3 position3 = navMeshHit3.position;
+				Vector3 vector4 = position3 - this.target.position;
+				vector4.y = 0f;
+				if (vector4.sqrMagnitude > vector.sqrMagnitude)
+				{
+					return position3;
+				}
+				goto IL_0128;
 			}
 		}
 		return position;

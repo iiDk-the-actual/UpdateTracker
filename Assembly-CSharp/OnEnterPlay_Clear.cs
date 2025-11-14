@@ -12,6 +12,11 @@ public class OnEnterPlay_Clear : OnEnterPlay_Attribute
 			Debug.LogError(string.Format("Can't Clear non-static field {0}.{1}", field.DeclaringType, field.Name));
 			return;
 		}
-		field.FieldType.GetMethod("Clear").Invoke(field.GetValue(null), new object[0]);
+		MethodInfo method = field.FieldType.GetMethod("Clear");
+		object value = field.GetValue(null);
+		if (value != null)
+		{
+			method.Invoke(value, new object[0]);
+		}
 	}
 }

@@ -301,9 +301,9 @@ internal class VRRigSerializer : GorillaWrappedSerializer, IFXContextParems<Hand
 	}
 
 	[PunRPC]
-	public void RPC_UpdateCosmeticsWithTryonPacked(int[] currentItemsPacked, int[] tryOnItemsPacked, PhotonMessageInfo info)
+	public void RPC_UpdateCosmeticsWithTryonPacked(int[] currentItemsPacked, int[] tryOnItemsPacked, bool playfx, PhotonMessageInfo info)
 	{
-		this.UpdateCosmeticsWithTryonShared(currentItemsPacked, tryOnItemsPacked, info);
+		this.UpdateCosmeticsWithTryonShared(currentItemsPacked, tryOnItemsPacked, playfx, info);
 	}
 
 	[PunRPC]
@@ -622,14 +622,14 @@ internal class VRRigSerializer : GorillaWrappedSerializer, IFXContextParems<Hand
 		vrrig.PlaySelfOnlyInstrument(selfOnlyIndex, noteIndex, instrumentVol, info);
 	}
 
-	private void UpdateCosmeticsWithTryonShared(int[] currentItems, int[] tryOnItems, PhotonMessageInfoWrapped info)
+	private void UpdateCosmeticsWithTryonShared(int[] currentItems, int[] tryOnItems, bool playfx, PhotonMessageInfoWrapped info)
 	{
 		VRRig vrrig = this.vrrig;
 		if (vrrig == null)
 		{
 			return;
 		}
-		vrrig.UpdateCosmeticsWithTryon(currentItems, tryOnItems, info);
+		vrrig.UpdateCosmeticsWithTryon(currentItems, tryOnItems, playfx, info);
 	}
 
 	private void PlaySplashEffectShared(Vector3 splashPosition, Quaternion splashRotation, float splashScale, float boundingRadius, bool bigSplash, bool enteringWater, PhotonMessageInfoWrapped info)

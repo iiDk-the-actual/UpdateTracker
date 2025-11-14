@@ -14,6 +14,7 @@ public class SinglePool
 			gameObject.name = this.objectToPool.name + "(PoolIndex=" + i.ToString() + ")";
 			gameObject.SetActive(false);
 			this.inactivePool.Push(gameObject);
+			this.amountAllocatedToPool++;
 			int instanceID = gameObject.GetInstanceID();
 			this.pooledObjects.Add(instanceID);
 		}
@@ -91,4 +92,6 @@ public class SinglePool
 	private Dictionary<int, GameObject> activePool;
 
 	private GameObject gameObject;
+
+	private int amountAllocatedToPool;
 }

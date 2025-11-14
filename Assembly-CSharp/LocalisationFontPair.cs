@@ -12,7 +12,7 @@ public struct LocalisationFontPair
 		int count = this.locales.Count;
 		for (int i = 0; i < this.locales.Count; i++)
 		{
-			if (this.locales[i].Identifier.Code == locale.Identifier.Code)
+			if (!(this.locales[i] == null) && this.locales[i].Identifier.Code == locale.Identifier.Code)
 			{
 				return true;
 			}

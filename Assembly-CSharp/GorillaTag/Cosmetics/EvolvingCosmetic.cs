@@ -63,6 +63,7 @@ namespace GorillaTag.Cosmetics
 				TickSystem<object>.RemoveTickCallback(this);
 				NetworkSystem.Instance.OnPlayerJoined -= this.SendElapsedTime;
 				this.networkEvents.Activate -= this.ReceiveElapsedTime;
+				this.FirstStage();
 			}
 			CallLimiter callLimiter = this.callLimiter;
 			if (callLimiter == null)
@@ -151,7 +152,7 @@ namespace GorillaTag.Cosmetics
 
 		public void Tick()
 		{
-			this.totalElapsedTime = Mathf.Clamp(this.totalElapsedTime + this.activeStage.DeltaTime(Time.deltaTime), 0f, this.totalDuration * 1.01f);
+			this.totalElapsedTime = Mathf.Clamp(this.totalElapsedTime + Mathf.Max(this.activeStage.DeltaTime(Time.deltaTime), 0f), 0f, this.totalDuration * 1.01f);
 			this.HandleStages();
 		}
 

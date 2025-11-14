@@ -344,21 +344,40 @@ namespace GorillaTagScripts.Builder
 			else
 			{
 				GTDev.LogError<string>(string.Format("PostVote Error: {0} -- raw response: ", request.responseCode) + request.downloadHandler.text, null);
-				long responseCode = request.responseCode;
-				if (responseCode > 500L && responseCode < 600L)
-				{
-					retry = true;
-				}
-				else if (request.result == UnityWebRequest.Result.ConnectionError)
+				if (request.result != UnityWebRequest.Result.ProtocolError)
 				{
 					retry = true;
 				}
 				else
 				{
-					this.voteInProgress = false;
-					if (callback != null)
+					long responseCode = request.responseCode;
+					if (responseCode >= 500L)
 					{
-						callback(false, "REQUEST ERROR");
+						if (responseCode >= 600L)
+						{
+							goto IL_0207;
+						}
+					}
+					else if (responseCode != 408L && responseCode != 429L)
+					{
+						goto IL_0207;
+					}
+					bool flag = true;
+					goto IL_020A;
+					IL_0207:
+					flag = false;
+					IL_020A:
+					if (flag)
+					{
+						retry = true;
+					}
+					else
+					{
+						this.voteInProgress = false;
+						if (callback != null)
+						{
+							callback(false, "REQUEST ERROR");
+						}
 					}
 				}
 			}
@@ -366,9 +385,9 @@ namespace GorillaTagScripts.Builder
 			{
 				if (this.voteRetryCount < this.maxRetriesOnFail)
 				{
-					int num = (int)Mathf.Pow(2f, (float)(this.voteRetryCount + 1));
+					float num = Random.Range(0.5f, Mathf.Pow(2f, (float)(this.voteRetryCount + 1)));
 					this.voteRetryCount++;
-					yield return new WaitForSeconds((float)num);
+					yield return new WaitForSeconds(num);
 					this.voteInProgress = false;
 					this.RequestVote(data.mapId, data.vote == 1, callback);
 				}
@@ -480,7 +499,7 @@ namespace GorillaTagScripts.Builder
 					{
 						callback(flag, data.userdataMetadataKey, text, request.responseCode);
 					}
-					goto IL_01F8;
+					goto IL_021D;
 				}
 				catch (Exception ex)
 				{
@@ -489,30 +508,49 @@ namespace GorillaTagScripts.Builder
 					{
 						callback(false, data.userdataMetadataKey, null, request.responseCode);
 					}
-					goto IL_01F8;
+					goto IL_021D;
 				}
 			}
-			long responseCode = request.responseCode;
-			if (responseCode > 500L && responseCode < 600L)
+			if (request.result != UnityWebRequest.Result.ProtocolError)
 			{
 				retry = true;
 			}
-			else if (request.result == UnityWebRequest.Result.ConnectionError)
+			else
 			{
-				retry = true;
+				long responseCode = request.responseCode;
+				if (responseCode >= 500L)
+				{
+					if (responseCode >= 600L)
+					{
+						goto IL_01E0;
+					}
+				}
+				else if (responseCode != 408L && responseCode != 429L)
+				{
+					goto IL_01E0;
+				}
+				bool flag2 = true;
+				goto IL_01E3;
+				IL_01E0:
+				flag2 = false;
+				IL_01E3:
+				if (flag2)
+				{
+					retry = true;
+				}
+				else if (callback != null)
+				{
+					callback(false, data.userdataMetadataKey, string.Empty, request.responseCode);
+				}
 			}
-			else if (callback != null)
-			{
-				callback(false, data.userdataMetadataKey, string.Empty, request.responseCode);
-			}
-			IL_01F8:
+			IL_021D:
 			if (retry)
 			{
 				if (this.postPublishMapRetryCount < this.maxRetriesOnFail)
 				{
-					int num = (int)Mathf.Pow(2f, (float)(this.postPublishMapRetryCount + 1));
+					float num = Random.Range(0.5f, Mathf.Pow(2f, (float)(this.postPublishMapRetryCount + 1)));
 					this.postPublishMapRetryCount++;
-					yield return new WaitForSeconds((float)num);
+					yield return new WaitForSeconds(num);
 					this.publishRequestInProgress = false;
 					this.RequestPublishMap(data.userdataMetadataKey);
 				}
@@ -577,14 +615,30 @@ namespace GorillaTagScripts.Builder
 				string text = request.downloadHandler.text;
 				this.GetMapDataFromIDComplete(data.mapId, text, callback);
 			}
+			else if (request.result != UnityWebRequest.Result.ProtocolError)
+			{
+				retry = true;
+			}
 			else
 			{
 				long responseCode = request.responseCode;
-				if (responseCode > 500L && responseCode < 600L)
+				if (responseCode >= 500L)
 				{
-					retry = true;
+					if (responseCode >= 600L)
+					{
+						goto IL_014E;
+					}
 				}
-				else if (request.result == UnityWebRequest.Result.ConnectionError)
+				else if (responseCode != 408L && responseCode != 429L)
+				{
+					goto IL_014E;
+				}
+				bool flag = true;
+				goto IL_0151;
+				IL_014E:
+				flag = false;
+				IL_0151:
+				if (flag)
 				{
 					retry = true;
 				}
@@ -597,9 +651,9 @@ namespace GorillaTagScripts.Builder
 			{
 				if (this.getMapDataFromIDRetryCount < this.maxRetriesOnFail)
 				{
-					int num = (int)Mathf.Pow(2f, (float)(this.getMapDataFromIDRetryCount + 1));
+					float num = Random.Range(0.5f, Mathf.Pow(2f, (float)(this.getMapDataFromIDRetryCount + 1)));
 					this.getMapDataFromIDRetryCount++;
-					yield return new WaitForSeconds((float)num);
+					yield return new WaitForSeconds(num);
 					this.getMapDataFromIDInProgress = false;
 					this.RequestMapDataFromID(data.mapId, callback);
 				}
@@ -683,7 +737,7 @@ namespace GorillaTagScripts.Builder
 					{
 						callback(list);
 					}
-					goto IL_0162;
+					goto IL_0187;
 				}
 				catch (Exception)
 				{
@@ -691,30 +745,49 @@ namespace GorillaTagScripts.Builder
 					{
 						callback(null);
 					}
-					goto IL_0162;
+					goto IL_0187;
 				}
 			}
-			long responseCode = request.responseCode;
-			if (responseCode > 500L && responseCode < 600L)
+			if (request.result != UnityWebRequest.Result.ProtocolError)
 			{
 				retry = true;
 			}
-			else if (request.result == UnityWebRequest.Result.ConnectionError)
+			else
 			{
-				retry = true;
+				long responseCode = request.responseCode;
+				if (responseCode >= 500L)
+				{
+					if (responseCode >= 600L)
+					{
+						goto IL_0165;
+					}
+				}
+				else if (responseCode != 408L && responseCode != 429L)
+				{
+					goto IL_0165;
+				}
+				bool flag = true;
+				goto IL_0168;
+				IL_0165:
+				flag = false;
+				IL_0168:
+				if (flag)
+				{
+					retry = true;
+				}
+				else if (callback != null)
+				{
+					callback(null);
+				}
 			}
-			else if (callback != null)
-			{
-				callback(null);
-			}
-			IL_0162:
+			IL_0187:
 			if (retry)
 			{
 				if (this.getTopMapsRetryCount < this.maxRetriesOnFail)
 				{
-					int num = (int)Mathf.Pow(2f, (float)(this.getTopMapsRetryCount + 1));
+					float num = Random.Range(0.5f, Mathf.Pow(2f, (float)(this.getTopMapsRetryCount + 1)));
 					this.getTopMapsRetryCount++;
-					yield return new WaitForSeconds((float)num);
+					yield return new WaitForSeconds(num);
 					this.getTopMapsInProgress = false;
 					this.RequestGetTopMaps(data.page, data.pageSize, data.sort);
 				}
@@ -823,14 +896,30 @@ namespace GorillaTagScripts.Builder
 					callback(true);
 				}
 			}
+			else if (request.result != UnityWebRequest.Result.ProtocolError)
+			{
+				retry = true;
+			}
 			else
 			{
 				long responseCode = request.responseCode;
-				if (responseCode > 500L && responseCode < 600L)
+				if (responseCode >= 500L)
 				{
-					retry = true;
+					if (responseCode >= 600L)
+					{
+						goto IL_0132;
+					}
 				}
-				else if (request.result == UnityWebRequest.Result.ConnectionError)
+				else if (responseCode != 408L && responseCode != 429L)
+				{
+					goto IL_0132;
+				}
+				bool flag = true;
+				goto IL_0135;
+				IL_0132:
+				flag = false;
+				IL_0135:
+				if (flag)
 				{
 					retry = true;
 				}
@@ -843,9 +932,9 @@ namespace GorillaTagScripts.Builder
 			{
 				if (this.updateMapActiveRetryCount < this.maxRetriesOnFail)
 				{
-					int num = (int)Mathf.Pow(2f, (float)(this.updateMapActiveRetryCount + 1));
+					float num = Random.Range(0.5f, Mathf.Pow(2f, (float)(this.updateMapActiveRetryCount + 1)));
 					this.updateMapActiveRetryCount++;
-					yield return new WaitForSeconds((float)num);
+					yield return new WaitForSeconds(num);
 					this.updateMapActiveInProgress = false;
 					this.RequestUpdateMapActive(data.userdataMetadataKey, data.setActive);
 				}
@@ -918,7 +1007,7 @@ namespace GorillaTagScripts.Builder
 			GTDev.LogWarning<string>("SharedBlocksManager OnGetConfigurationFail " + error.Error.ToString(), null);
 			if (error.Error == PlayFabErrorCode.ConnectionError && this.fetchTableConfigRetryCount < this.maxRetriesOnFail)
 			{
-				int num = (int)Mathf.Pow(2f, (float)(this.fetchTableConfigRetryCount + 1));
+				float num = Random.Range(0.5f, Mathf.Pow(2f, (float)(this.fetchTableConfigRetryCount + 1)));
 				this.fetchTableConfigRetryCount++;
 				base.StartCoroutine(this.RetryAfterWaitTime(num, new Action(this.FetchConfigurationFromTitleData)));
 				return;
@@ -933,9 +1022,9 @@ namespace GorillaTagScripts.Builder
 			onGetTableConfiguration(this.tableConfigResponse);
 		}
 
-		private IEnumerator RetryAfterWaitTime(int waitTime, Action function)
+		private IEnumerator RetryAfterWaitTime(float waitTime, Action function)
 		{
-			yield return new WaitForSeconds((float)waitTime);
+			yield return new WaitForSeconds(waitTime);
 			if (function != null)
 			{
 				function();
@@ -1012,7 +1101,7 @@ namespace GorillaTagScripts.Builder
 			GTDev.LogWarning<string>("SharedBlocksManager FetchTitleDataBuildFail " + error.Error.ToString(), null);
 			if (error.Error == PlayFabErrorCode.ConnectionError && this.fetchTitleDataRetryCount < this.maxRetriesOnFail)
 			{
-				int num = (int)Mathf.Pow(2f, (float)(this.fetchTitleDataRetryCount + 1));
+				float num = Random.Range(0.5f, Mathf.Pow(2f, (float)(this.fetchTitleDataRetryCount + 1)));
 				this.fetchTitleDataRetryCount++;
 				base.StartCoroutine(this.RetryAfterWaitTime(num, new Action(this.FetchTitleDataBuild)));
 				return;
@@ -1179,7 +1268,7 @@ namespace GorillaTagScripts.Builder
 			GTDev.LogWarning<string>("SharedBlocksManager OnFetchBuildsFromPlayfabFail " + (((error != null) ? error.ErrorMessage : null) ?? "Null"), null);
 			if (error != null && error.Error == PlayFabErrorCode.ConnectionError && this.fetchPlayfabBuildsRetryCount < this.maxRetriesOnFail)
 			{
-				int num = (int)Mathf.Pow(2f, (float)(this.fetchPlayfabBuildsRetryCount + 1));
+				float num = Random.Range(0.5f, Mathf.Pow(2f, (float)(this.fetchPlayfabBuildsRetryCount + 1)));
 				this.fetchPlayfabBuildsRetryCount++;
 				base.StartCoroutine(this.RetryAfterWaitTime(num, new Action(this.FetchBuildFromPlayfab)));
 				return;

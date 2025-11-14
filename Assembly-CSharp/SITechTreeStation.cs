@@ -78,11 +78,11 @@ public class SITechTreeStation : MonoBehaviour, ITouchScreenStation
 
 	private void CollectButtonColliders()
 	{
-		SITechTreeStation.<>c__DisplayClass76_0 CS$<>8__locals1;
+		SITechTreeStation.<>c__DisplayClass77_0 CS$<>8__locals1;
 		CS$<>8__locals1.buttons = base.GetComponentsInChildren<SITouchscreenButton>(true).ToList<SITouchscreenButton>();
-		SITechTreeStation.<CollectButtonColliders>g__RemoveButtonsInside|76_2((from d in base.GetComponentsInChildren<DestroyIfNotBeta>()
+		SITechTreeStation.<CollectButtonColliders>g__RemoveButtonsInside|77_2((from d in base.GetComponentsInChildren<DestroyIfNotBeta>()
 			select d.gameObject).ToArray<GameObject>(), ref CS$<>8__locals1);
-		SITechTreeStation.<CollectButtonColliders>g__RemoveButtonsInside|76_2(new GameObject[] { this.techTreeHelpScreen, this.nodePopupScreen }, ref CS$<>8__locals1);
+		SITechTreeStation.<CollectButtonColliders>g__RemoveButtonsInside|77_2(new GameObject[] { this.techTreeHelpScreen, this.nodePopupScreen }, ref CS$<>8__locals1);
 		this._nonPopupButtonColliders = CS$<>8__locals1.buttons.Select((SITouchscreenButton b) => b.GetComponent<Collider>()).ToList<Collider>();
 	}
 
@@ -142,8 +142,13 @@ public class SITechTreeStation : MonoBehaviour, ITouchScreenStation
 		this.spriteByType.Add(SIResource.ResourceType.FloppyMetal, this.floppyMetalSprite);
 		this.techTreeIconById.Add(SITechTreePageId.Thruster, this.thrustersIcon);
 		this.techTreeIconById.Add(SITechTreePageId.Stilt, this.longArmsIcon);
+		this.techTreeIconById.Add(SITechTreePageId.Grenades, this.floppyMetalSprite);
 		this.techTreeIconById.Add(SITechTreePageId.Dash, this.dashYoYoIcon);
 		this.techTreeIconById.Add(SITechTreePageId.Platform, this.platformsIcon);
+		this.techTreeIconById.Add(SITechTreePageId.TapTeleport, this.floppyMetalSprite);
+		this.techTreeIconById.Add(SITechTreePageId.Tentacle, this.floppyMetalSprite);
+		this.techTreeIconById.Add(SITechTreePageId.AirGrab, this.floppyMetalSprite);
+		this.techTreeIconById.Add(SITechTreePageId.SlipMitt, this.floppyMetalSprite);
 		for (int i = 0; i < this.techTreeSO.TreePages.Count; i++)
 		{
 			SITechTreePage sitechTreePage = this.techTreeSO.TreePages[i];
@@ -278,7 +283,9 @@ public class SITechTreeStation : MonoBehaviour, ITouchScreenStation
 			{
 				sitechTreeUIPage.gameObject.SetActive(sitechTreeUIPage.id == (SITechTreePageId)this.parentTerminal.ActivePage);
 			}
-			this.techTreeIcon.sprite = this.techTreeIconById[(SITechTreePageId)this.parentTerminal.ActivePage];
+			Sprite sprite;
+			this.techTreeIconById.TryGetValue((SITechTreePageId)this.parentTerminal.ActivePage, out sprite);
+			this.techTreeIcon.sprite = sprite;
 			return;
 		}
 		case SITechTreeStation.TechTreeStationTerminalState.TechTreeNodePopup:
@@ -401,6 +408,14 @@ public class SITechTreeStation : MonoBehaviour, ITouchScreenStation
 
 	public void TouchscreenButtonPressed(SITouchscreenButton.SITouchscreenButtonType buttonType, int data, int actorNr)
 	{
+		if (actorNr == SIPlayer.LocalPlayer.ActorNr && (this.ActivePlayer == null || this.ActivePlayer != SIPlayer.LocalPlayer))
+		{
+			this.parentTerminal.PlayWrongPlayerBuzz(this.uiCenter);
+		}
+		else
+		{
+			this.soundBankPlayer.Play();
+		}
 		if (actorNr == SIPlayer.LocalPlayer.ActorNr && this.ActivePlayer == SIPlayer.LocalPlayer && this.currentState == SITechTreeStation.TechTreeStationTerminalState.TechTreeNodePopup && this.nodePopupState == SITechTreeStation.NodePopupState.Description && buttonType == SITouchscreenButton.SITouchscreenButtonType.Research && !SIPlayer.LocalPlayer.NodeResearched(this.CurrentNode.upgradeType) && SIPlayer.LocalPlayer.NodeParentsUnlocked(this.CurrentNode.upgradeType))
 		{
 			SIProgression.Instance.TryUnlock(this.CurrentNode.upgradeType);
@@ -408,7 +423,6 @@ public class SITechTreeStation : MonoBehaviour, ITouchScreenStation
 		if (!this.IsAuthority)
 		{
 			this.parentTerminal.TouchscreenButtonPressed(buttonType, data, actorNr, SICombinedTerminal.TerminalSubFunction.TechTree);
-			this.soundBankPlayer.Play();
 			return;
 		}
 		if (this.ActivePlayer == null || actorNr != this.ActivePlayer.ActorNr)
@@ -672,7 +686,7 @@ public class SITechTreeStation : MonoBehaviour, ITouchScreenStation
 	}
 
 	[CompilerGenerated]
-	internal static void <CollectButtonColliders>g__RemoveButtonsInside|76_2(GameObject[] roots, ref SITechTreeStation.<>c__DisplayClass76_0 A_1)
+	internal static void <CollectButtonColliders>g__RemoveButtonsInside|77_2(GameObject[] roots, ref SITechTreeStation.<>c__DisplayClass77_0 A_1)
 	{
 		for (int i = 0; i < roots.Length; i++)
 		{
@@ -738,6 +752,8 @@ public class SITechTreeStation : MonoBehaviour, ITouchScreenStation
 	public TextMeshProUGUI playerNameText;
 
 	public Image background;
+
+	public Transform uiCenter;
 
 	[Header("Popup Shared")]
 	public GameObject popupScreen;

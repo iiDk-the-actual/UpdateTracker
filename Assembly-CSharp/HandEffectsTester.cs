@@ -54,6 +54,8 @@ public class HandEffectsTester : MonoBehaviour, IHandEffectsTrigger
 		}
 	}
 
+	public Action<IHandEffectsTrigger.Mode> OnTrigger { get; set; }
+
 	public bool RightHand { get; }
 
 	private void Awake()

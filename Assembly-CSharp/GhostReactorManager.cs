@@ -794,7 +794,7 @@ public class GhostReactorManager : NetworkComponent, IGameEntityZoneComponent
 			string text = Guid.NewGuid().ToString();
 			this.photonView.RPC("ApplyShiftStartRPC", RpcTarget.All, new object[] { time, num, text, isFirstShift });
 			shiftManager.RequestState(GhostReactorShiftManager.State.ShiftActive);
-			ProgressionManager.Instance.StartOfShift(text, shiftManager.shiftRewardCoresForMothership, this.reactor.vrRigs.Count);
+			ProgressionManager.Instance.StartOfShift(text, shiftManager.shiftRewardCoresForMothership, this.reactor.vrRigs.Count, this.reactor.GetDepthLevel());
 		}
 	}
 
@@ -2082,23 +2082,29 @@ public class GhostReactorManager : NetworkComponent, IGameEntityZoneComponent
 		dropZone.PlayEffect();
 	}
 
-	public void RequestRecycleScanItem(GRTool.GRToolType toolType)
+	public void RequestRecycleScanItem(GameEntityId gameEntityId)
 	{
 		if (!this.IsAuthority())
 		{
 			return;
 		}
-		base.SendRPC("ApplRecycleScanItemRPC", RpcTarget.All, new object[] { toolType });
+		int netIdFromEntityId = this.gameEntityManager.GetNetIdFromEntityId(gameEntityId);
+		if (netIdFromEntityId == -1)
+		{
+			return;
+		}
+		base.SendRPC("ApplyRecycleScanItemRPC", RpcTarget.All, new object[] { netIdFromEntityId });
 	}
 
 	[PunRPC]
-	public void ApplRecycleScanItemRPC(GRTool.GRToolType toolType, PhotonMessageInfo info)
+	public void ApplyRecycleScanItemRPC(int netId, PhotonMessageInfo info)
 	{
 		if (!this.IsZoneActive() || !this.IsValidClientRPC(info.Sender) || this.m_RpcSpamChecks.IsSpamming(GhostReactorManager.RPC.ApplRecycleScanItem))
 		{
 			return;
 		}
-		this.reactor.recycler.ScanItem(toolType);
+		GameEntityId entityIdFromNetId = this.gameEntityManager.GetEntityIdFromNetId(netId);
+		this.reactor.recycler.ScanItem(entityIdFromNetId);
 	}
 
 	public void RequestRecycleItem(int lastHeldActorNumber, GameEntityId toolId, GRTool.GRToolType toolType)
@@ -2428,6 +2434,11 @@ public class GhostReactorManager : NetworkComponent, IGameEntityZoneComponent
 		}
 		reader.ReadBoolean();
 		this.reactor.VRRigRefresh();
+	}
+
+	public long ProcessMigratedGameEntityCreateData(GameEntity entity, long createData)
+	{
+		return createData;
 	}
 
 	public bool ValidateMigratedGameEntity(int netId, int entityTypeId, Vector3 position, Quaternion rotation, long createData, int actorNr)

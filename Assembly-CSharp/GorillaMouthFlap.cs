@@ -8,6 +8,11 @@ public class GorillaMouthFlap : MonoBehaviour, IGorillaSliceableSimple
 		this.speaker = base.GetComponent<GorillaSpeakerLoudness>();
 		this.targetFaceRenderer = this.targetFace.GetComponent<Renderer>();
 		this.facePropBlock = new MaterialPropertyBlock();
+		this.hasDefaultMouthAtlas = false;
+		if (this.targetFaceRenderer != null)
+		{
+			this.SetDefaultMouthAtlas(this.targetFaceRenderer.material);
+		}
 	}
 
 	public void EnableLeafBlower()
@@ -102,11 +107,7 @@ public class GorillaMouthFlap : MonoBehaviour, IGorillaSliceableSimple
 	public void SetMouthTextureReplacement(Texture2D replacementMouthAtlas)
 	{
 		Material material = this.targetFaceRenderer.material;
-		if (!this.hasDefaultMouthAtlas)
-		{
-			this.defaultMouthAtlas = material.GetTexture(this._MouthMap);
-			this.hasDefaultMouthAtlas = true;
-		}
+		this.SetDefaultMouthAtlas(material);
 		material.SetTexture(this._MouthMap, replacementMouthAtlas);
 	}
 
@@ -131,6 +132,15 @@ public class GorillaMouthFlap : MonoBehaviour, IGorillaSliceableSimple
 		if (this.hasDefaultFaceMaterial)
 		{
 			this.targetFaceRenderer.material = this.defaultFaceMaterial;
+		}
+	}
+
+	private void SetDefaultMouthAtlas(Material face)
+	{
+		if (!this.hasDefaultMouthAtlas)
+		{
+			this.defaultMouthAtlas = face.GetTexture(this._MouthMap);
+			this.hasDefaultMouthAtlas = true;
 		}
 	}
 

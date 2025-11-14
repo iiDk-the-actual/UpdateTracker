@@ -91,6 +91,15 @@ namespace GorillaTag.Cosmetics
 					if (this.simpleAnimation != null && !this.simpleAnimation.isPlaying)
 					{
 						this.simpleAnimation.Play();
+					}
+					if (!this.isSpeaking)
+					{
+						UnityEvent unityEvent = this.onStartSpeaking;
+						if (unityEvent != null)
+						{
+							unityEvent.Invoke();
+						}
+						this.isSpeaking = true;
 						return;
 					}
 				}
@@ -98,6 +107,15 @@ namespace GorillaTag.Cosmetics
 			else
 			{
 				this.speakingTime = 0f;
+				if (this.isSpeaking)
+				{
+					UnityEvent unityEvent2 = this.onStopSpeaking;
+					if (unityEvent2 != null)
+					{
+						unityEvent2.Invoke();
+					}
+					this.isSpeaking = false;
+				}
 			}
 		}
 

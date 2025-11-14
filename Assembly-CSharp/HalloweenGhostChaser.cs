@@ -603,7 +603,6 @@ public class HalloweenGhostChaser : NetworkComponent
 
 	public void OnJoinedRoom()
 	{
-		Debug.Log("Here");
 		if (NetworkSystem.Instance.IsMasterClient)
 		{
 			this.InitializeGhost();

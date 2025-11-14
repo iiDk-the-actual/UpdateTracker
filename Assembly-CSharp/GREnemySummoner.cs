@@ -22,7 +22,7 @@ public class GREnemySummoner : MonoBehaviour, IGameEntityComponent, IGameEntityS
 		this.navAgent.updateRotation = false;
 		this.behaviorStartTime = -1.0;
 		this.agent.onBehaviorStateChanged += this.OnNetworkBehaviorStateChange;
-		this.senseNearby.Setup(base.transform);
+		this.senseNearby.Setup(this.headTransform);
 	}
 
 	public void OnEntityInit()
@@ -78,9 +78,9 @@ public class GREnemySummoner : MonoBehaviour, IGameEntityComponent, IGameEntityS
 		this.agent.onBehaviorStateChanged -= this.OnNetworkBehaviorStateChange;
 	}
 
-	private void OnAgentJumpRequested(Vector3 start, Vector3 end)
+	private void OnAgentJumpRequested(Vector3 start, Vector3 end, float heightScale, float speedScale)
 	{
-		this.abilityJump.SetupJump(start, end);
+		this.abilityJump.SetupJump(start, end, heightScale, speedScale);
 		this.SetBehavior(GREnemySummoner.Behavior.Jump, false);
 	}
 
@@ -264,7 +264,7 @@ public class GREnemySummoner : MonoBehaviour, IGameEntityComponent, IGameEntityS
 
 	public bool CanSummon()
 	{
-		return !GhostReactorManager.AggroDisabled && Time.timeAsDouble - this.lastSummonTime >= (double)this.minSummonInterval && this.trackedEntities.Count < this.maxSimultaneousSummonedEntities;
+		return !GhostReactorManager.AggroDisabled && (this.currBehavior != GREnemySummoner.Behavior.Summon || !this.abilitySummon.IsDone()) && Time.timeAsDouble - this.lastSummonTime >= (double)this.minSummonInterval && this.trackedEntities.Count < this.maxSimultaneousSummonedEntities;
 	}
 
 	public Transform GetPlayerTransform(NetPlayer targetPlayer)
@@ -575,39 +575,26 @@ public class GREnemySummoner : MonoBehaviour, IGameEntityComponent, IGameEntityS
 		}
 	}
 
-	public static void Hide(List<Renderer> renderers, bool hide)
-	{
-		if (renderers == null)
-		{
-			return;
-		}
-		for (int i = 0; i < renderers.Count; i++)
-		{
-			if (renderers[i] != null)
-			{
-				renderers[i].enabled = !hide;
-			}
-		}
-	}
-
 	private void RefreshBody()
 	{
 		switch (this.currBodyState)
 		{
 		case GREnemySummoner.BodyState.Destroyed:
 			this.armor.SetHp(0);
-			GREnemySummoner.Hide(this.bones, false);
-			GREnemySummoner.Hide(this.always, false);
 			return;
 		case GREnemySummoner.BodyState.Bones:
 			this.armor.SetHp(0);
-			GREnemySummoner.Hide(this.bones, false);
-			GREnemySummoner.Hide(this.always, false);
+			GREnemy.HideRenderers(this.bones, false);
+			GREnemy.HideRenderers(this.always, false);
+			GREnemy.HideObjects(this.bonesStateVisibleObjects, false);
+			GREnemy.HideObjects(this.alwaysVisibleObjects, false);
 			return;
 		case GREnemySummoner.BodyState.Shell:
 			this.armor.SetHp(this.hp);
-			GREnemySummoner.Hide(this.bones, true);
-			GREnemySummoner.Hide(this.always, false);
+			GREnemy.HideRenderers(this.bones, true);
+			GREnemy.HideRenderers(this.always, false);
+			GREnemy.HideObjects(this.bonesStateVisibleObjects, true);
+			GREnemy.HideObjects(this.alwaysVisibleObjects, false);
 			return;
 		default:
 			return;
@@ -727,6 +714,10 @@ public class GREnemySummoner : MonoBehaviour, IGameEntityComponent, IGameEntityS
 	public List<Renderer> bones;
 
 	public List<Renderer> always;
+
+	public List<GameObject> bonesStateVisibleObjects;
+
+	public List<GameObject> alwaysVisibleObjects;
 
 	public Transform coreMarker;
 

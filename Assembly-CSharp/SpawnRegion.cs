@@ -85,23 +85,16 @@ public class SpawnRegion<TItem, TRegion> : MonoBehaviour where TItem : Object wh
 		if (SpawnRegion<TItem, TRegion>._regionLookup.TryGetValue(regionId, out tregion))
 		{
 			tregion.AddItem(item);
-			return;
 		}
-		GTDev.LogError<string>(string.Format("Attempted to add item to non-existing region {0}.", regionId), null);
 	}
 
 	public static void RemoveItemFromRegion(TItem item)
 	{
 		int num;
-		if (SpawnRegion<TItem, TRegion>._itemRegionLookup.TryGetValue(item, out num))
+		TRegion tregion;
+		if (SpawnRegion<TItem, TRegion>._itemRegionLookup.TryGetValue(item, out num) && SpawnRegion<TItem, TRegion>._regionLookup.TryGetValue(num, out tregion))
 		{
-			TRegion tregion;
-			if (SpawnRegion<TItem, TRegion>._regionLookup.TryGetValue(num, out tregion))
-			{
-				tregion.RemoveItem(item);
-				return;
-			}
-			GTDev.LogError<string>(string.Format("Couldn't find region with id {0}", num), null);
+			tregion.RemoveItem(item);
 		}
 	}
 
@@ -128,7 +121,6 @@ public class SpawnRegion<TItem, TRegion> : MonoBehaviour where TItem : Object wh
 				return new ValueTuple<bool, Vector3, Vector3>(true, raycastHit.point, raycastHit.normal);
 			}
 		}
-		GTDev.LogError<string>(string.Format("Failed {0} times to find ground point in region {1} in scene {2}.", maxTries, this.ID, base.gameObject.scene.name), this, null);
 		float num = this._scale / 2f;
 		Vector3 vector = base.transform.TransformPoint(new Vector3(Random.Range(-num, num), num, Random.Range(-num, num)));
 		return new ValueTuple<bool, Vector3, Vector3>(false, vector, Vector3.up);
@@ -139,13 +131,11 @@ public class SpawnRegion<TItem, TRegion> : MonoBehaviour where TItem : Object wh
 		float num = base.transform.lossyScale.y * this._scale;
 		if (this._useSpawnOrigins)
 		{
-			Transform transform = this.spawnOrigins[Random.Range(0, this.spawnOrigins.Length)];
-			Vector3 vector = transform.position;
+			Vector3 vector = this.spawnOrigins[Random.Range(0, this.spawnOrigins.Length)].position;
 			if (this.TryGetSpawnPoint(vector, Random.onUnitSphere, Mathf.Max(num, 100f), out spawnPoint))
 			{
 				return spawnPoint.normal.y > 0f || this.TryGetSpawnPoint(spawnPoint.point, Vector3.down, num, out spawnPoint);
 			}
-			Debug.LogError(string.Format("Unable to find spawn point originating from {0} [P:{1} N:{2}].", vector, spawnPoint.point, spawnPoint.normal), transform);
 			spawnPoint = default(RaycastHit);
 			return false;
 		}
@@ -190,7 +180,6 @@ public class SpawnRegion<TItem, TRegion> : MonoBehaviour where TItem : Object wh
 			{
 				break;
 			}
-			GTDev.LogError<string>(string.Format("{0} hit test buffer not large enough in {1} - expanding.", this, base.gameObject.scene.name), this, null);
 			this._hitTestBuffer = new RaycastHit[this._hitTestBuffer.Length * 2];
 		}
 		bool flag = (num + num2) % 2 != 0;

@@ -4,6 +4,7 @@ using GorillaExtensions;
 using GorillaTag;
 using Liv.Lck.GorillaTag;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class LCKSocialCameraFollower : MonoBehaviour, ITickSystemTick
 {
@@ -15,11 +16,11 @@ public class LCKSocialCameraFollower : MonoBehaviour, ITickSystemTick
 		}
 	}
 
-	public CoconutCamera CoconutCamera
+	public GameObject CameraVisualsRoot
 	{
 		get
 		{
-			return this._coconutCamera;
+			return this._cameraVisualsRoot;
 		}
 	}
 
@@ -33,6 +34,8 @@ public class LCKSocialCameraFollower : MonoBehaviour, ITickSystemTick
 
 	private void Awake()
 	{
+		this._initialScale = base.transform.localScale;
+		this.m_gtCameraVisuals = this._cameraVisualsRoot.GetComponent<IGtCameraVisuals>();
 		if (this.m_rigContainer.Rig.isOfflineVRRig)
 		{
 			base.gameObject.SetActive(false);
@@ -48,14 +51,33 @@ public class LCKSocialCameraFollower : MonoBehaviour, ITickSystemTick
 
 	private void Start()
 	{
+		if (!this.isParentedToRig)
+		{
+			base.transform.parent = null;
+		}
+	}
+
+	public void SetParentToRig()
+	{
+		this.isParentedToRig = true;
+		base.transform.parent = this.m_rigContainer.transform;
+		base.transform.localPosition = new Vector3(0f, -0.2f, 0.132f);
+		base.transform.localRotation = Quaternion.identity;
+		base.transform.localScale = this._initialScale * 0.3f;
+	}
+
+	public void SetParentNull()
+	{
+		this.isParentedToRig = false;
 		base.transform.parent = null;
+		base.transform.localScale = this._initialScale;
 	}
 
 	private void PostRigEnable(RigContainer _)
 	{
 		base.gameObject.SetActive(true);
-		this._coconutCamera.SetVisualsActive(false);
-		this._coconutCamera.SetRecordingState(false);
+		this.m_gtCameraVisuals.SetNetworkedVisualsActive(false);
+		this.m_gtCameraVisuals.SetRecordingState(false);
 	}
 
 	private void PreRigDisable(RigContainer _)
@@ -89,15 +111,19 @@ public class LCKSocialCameraFollower : MonoBehaviour, ITickSystemTick
 
 	void ITickSystemTick.Tick()
 	{
-		base.transform.position = this.m_transformToFollow.position;
-		base.transform.root.rotation = this.m_transformToFollow.rotation;
+		if (!this.isParentedToRig)
+		{
+			base.transform.position = this.m_transformToFollow.position;
+			base.transform.root.rotation = this.m_transformToFollow.rotation;
+		}
 	}
 
 	[SerializeField]
 	private Transform _scaleTransform;
 
+	[FormerlySerializedAs("_coconutCamera")]
 	[SerializeField]
-	private CoconutCamera _coconutCamera;
+	private GameObject _cameraVisualsRoot;
 
 	[SerializeField]
 	private List<GameObject> _visualObjects;
@@ -108,4 +134,10 @@ public class LCKSocialCameraFollower : MonoBehaviour, ITickSystemTick
 	private Transform m_transformToFollow;
 
 	private LckSocialCamera m_networkController;
+
+	private IGtCameraVisuals m_gtCameraVisuals;
+
+	private Vector3 _initialScale = Vector3.one;
+
+	private bool isParentedToRig;
 }

@@ -21,7 +21,7 @@ public class GRAbilitySummon : GRAbilityBase
 		this.state = GRAbilitySummon.State.Charge;
 		this.summonSound.Play(this.audioSource);
 		this.spawnedCount = 0;
-		this.agent.SetIsPathing(false, true);
+		this.agent.navAgent.isStopped = true;
 		this.agent.navAgent.speed = 1f;
 		if (this.fxStartSummon != null)
 		{
@@ -33,7 +33,7 @@ public class GRAbilitySummon : GRAbilityBase
 	public override void Stop()
 	{
 		this.lookAtTarget = null;
-		this.agent.SetIsPathing(true, true);
+		this.agent.navAgent.isStopped = false;
 	}
 
 	public void SetLookAtTarget(Transform transform)
@@ -98,7 +98,7 @@ public class GRAbilitySummon : GRAbilityBase
 	private Vector3? GetSpawnLocation()
 	{
 		Vector3 position = this.root.position;
-		float num = Random.Range(0f, this.summonConeAngle);
+		float num = Random.Range(-this.summonConeAngle / 2f, this.summonConeAngle / 2f);
 		int i = 0;
 		while (i < 5)
 		{
@@ -110,6 +110,10 @@ public class GRAbilitySummon : GRAbilityBase
 				if (navMeshHit.distance < this.minSpawnDistance)
 				{
 					num += 15f;
+					if (num > this.summonConeAngle / 2f)
+					{
+						this.summonConeAngle = -this.summonConeAngle / 2f;
+					}
 					i++;
 					continue;
 				}
@@ -128,9 +132,7 @@ public class GRAbilitySummon : GRAbilityBase
 			if (this.entity.IsAuthority())
 			{
 				Quaternion identity = Quaternion.identity;
-				GameEntityManager gameEntityManager = GhostReactorManager.Get(this.entity).gameEntityManager;
-				Debug.Log(string.Format("summon ability spawning for summoner id: {0} name: {1}", this.entity.GetNetId(), this.entity.ToString()), this.entity);
-				gameEntityManager.RequestCreateItem(this.entityPrefabToSpawn.name.GetStaticHash(), spawnLocation.Value, identity, (long)this.entity.GetNetId());
+				GhostReactorManager.Get(this.entity).gameEntityManager.RequestCreateItem(this.entityPrefabToSpawn.name.GetStaticHash(), spawnLocation.Value, identity, (long)this.entity.GetNetId());
 				this.spawnedCount++;
 			}
 			if (this.audioSource != null)

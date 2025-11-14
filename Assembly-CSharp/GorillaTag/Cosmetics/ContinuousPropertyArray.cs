@@ -23,6 +23,8 @@ namespace GorillaTag.Cosmetics
 			}
 			this.initialized = true;
 			this.inverseMaximum = 1f / this.maxExpectedValue;
+			this.value = 0f;
+			this.lastApplyTime = Time.time - Time.deltaTime;
 			for (int i = 0; i < this.list.Length; i++)
 			{
 				this.list[i].Init();
@@ -55,32 +57,34 @@ namespace GorillaTag.Cosmetics
 			}
 		}
 
-		public void ApplyAll(bool leftHand, float value)
+		public void ApplyAll(bool leftHand, float f)
 		{
-			this.ApplyAll(value);
+			this.ApplyAll(f);
 		}
 
 		public void ApplyAll(float f)
 		{
-			f *= this.inverseMaximum;
 			if (this.list.Length == 0)
 			{
 				return;
 			}
 			this.InitIfNeeded();
-			int num = int.MaxValue;
+			float num = Time.time - this.lastApplyTime;
+			this.value = (this.instant ? (f * this.inverseMaximum) : Mathf.Lerp(this.value, f * this.inverseMaximum, 1f - Mathf.Exp(-this.responsiveness * num)));
+			this.lastApplyTime = Time.time;
+			int num2 = int.MaxValue;
 			if (this.uniqueShaderPropertyIndices.Count > 0)
 			{
-				num = 0;
+				num2 = 0;
 				((Renderer)this.list[0].Target).GetPropertyBlock(this.mpb, this.list[0].IntValue);
 			}
 			for (int i = 0; i < this.list.Length; i++)
 			{
-				this.list[i].Apply(f, this.mpb);
-				if (num < this.uniqueShaderPropertyIndices.Count && i >= this.uniqueShaderPropertyIndices[num] - 1)
+				this.list[i].Apply(this.value, num, this.mpb);
+				if (num2 < this.uniqueShaderPropertyIndices.Count && i >= this.uniqueShaderPropertyIndices[num2] - 1)
 				{
 					((Renderer)this.list[i].Target).SetPropertyBlock(this.mpb, this.list[0].IntValue);
-					if (++num < this.uniqueShaderPropertyIndices.Count)
+					if (++num2 < this.uniqueShaderPropertyIndices.Count)
 					{
 						((Renderer)this.list[i + 1].Target).GetPropertyBlock(this.mpb, this.list[i + 1].IntValue);
 					}
@@ -94,6 +98,14 @@ namespace GorillaTag.Cosmetics
 
 		private float inverseMaximum;
 
+		[Tooltip("Determines how quickly the internal value lerps towards the input value. A low number will take a long time to match but will be more resistant to fluctuations, visa versa for a high value. A good starting point is 5 to 10.")]
+		[SerializeField]
+		private float responsiveness = 5f;
+
+		[Tooltip("If true (default behavior), the input value will be used directly. Disable this if you need better control over how smoothly the properties get applied.")]
+		[SerializeField]
+		private bool instant = true;
+
 		[SerializeField]
 		private ContinuousProperty[] list;
 
@@ -102,6 +114,10 @@ namespace GorillaTag.Cosmetics
 		private MaterialPropertyBlock mpb;
 
 		private bool initialized;
+
+		private float value;
+
+		private float lastApplyTime;
 
 		private class PropertyComparer : IComparer<ContinuousProperty>
 		{

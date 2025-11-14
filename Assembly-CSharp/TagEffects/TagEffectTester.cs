@@ -31,6 +31,8 @@ namespace TagEffects
 
 		public Vector3 Velocity { get; }
 
+		public Action<IHandEffectsTrigger.Mode> OnTrigger { get; set; }
+
 		public bool RightHand { get; }
 
 		public float Magnitude { get; }

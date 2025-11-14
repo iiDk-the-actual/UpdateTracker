@@ -18,6 +18,10 @@ namespace GorillaTag
 		[RuntimeInitializeOnLoadMethod]
 		private static void _Init()
 		{
+			if (GTTime._isInitialized)
+			{
+				return;
+			}
 			try
 			{
 				GTTime.timeZoneInfoLA = TimeZoneInfo.FindSystemTimeZoneById("America/Los_Angeles");
@@ -30,10 +34,41 @@ namespace GorillaTag
 				}
 				catch
 				{
-					Debug.LogError("[GTTime]  ERROR!!!  Constructor: Could not get United States Pacific Time Zone (Los Angeles) so UTC will be used instead.");
-					GTTime.timeZoneInfoLA = TimeZoneInfo.Utc;
+					TimeZoneInfo timeZoneInfo;
+					if (GTTime._TryCreateCustomPST(out timeZoneInfo))
+					{
+						GTTime.timeZoneInfoLA = timeZoneInfo;
+						Debug.Log("[GTTime]  _Init: Could not get US Pacific Time Zone, so using manual created Pacific time zone instead.");
+					}
+					else
+					{
+						Debug.LogError("[GTTime]  ERROR!!!  _Init: Could not get US Pacific Time Zone and manual Pacific time zone creation failed. Using UTC instead.");
+						GTTime.timeZoneInfoLA = TimeZoneInfo.Utc;
+					}
 				}
 			}
+			finally
+			{
+				GTTime._isInitialized = true;
+			}
+		}
+
+		private static bool _TryCreateCustomPST(out TimeZoneInfo out_tz)
+		{
+			TimeZoneInfo.AdjustmentRule[] array = new TimeZoneInfo.AdjustmentRule[] { TimeZoneInfo.AdjustmentRule.CreateAdjustmentRule(new DateTime(2007, 1, 1), DateTime.MaxValue.Date, TimeSpan.FromHours(1.0), TimeZoneInfo.TransitionTime.CreateFloatingDateRule(new DateTime(1, 1, 1, 2, 0, 0), 3, 2, DayOfWeek.Sunday), TimeZoneInfo.TransitionTime.CreateFloatingDateRule(new DateTime(1, 1, 1, 2, 0, 0), 11, 1, DayOfWeek.Sunday)) };
+			bool flag;
+			try
+			{
+				out_tz = TimeZoneInfo.CreateCustomTimeZone("Custom/America_Los_Angeles", TimeSpan.FromHours(-8.0), "(UTC-08:00) Pacific Time (US & Canada)", "Pacific Standard Time", "Pacific Daylight Time", array, false);
+				flag = true;
+			}
+			catch (Exception ex)
+			{
+				Debug.LogError("[GTTime]  ERROR!!!  _TryCreateCustomPST: Encountered exception: " + ex.Message);
+				out_tz = null;
+				flag = false;
+			}
+			return flag;
 		}
 
 		public static bool usingServerTime { get; private set; }
@@ -105,5 +140,7 @@ namespace GorillaTag
 		private const string preLog = "[GTTime]  ";
 
 		private const string preErr = "[GTTime]  ERROR!!!  ";
+
+		private static bool _isInitialized;
 	}
 }

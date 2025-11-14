@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Fusion;
 using GorillaExtensions;
 using GorillaTag;
+using Liv.Lck.Cosmetics;
 using Liv.Lck.GorillaTag;
 using Photon.Pun;
 using UnityEngine;
@@ -25,71 +25,29 @@ public class LckSocialCamera : NetworkComponent, IGorillaSliceableSimple
 		}
 	}
 
-	private LckSocialCamera.CameraState currentState
-	{
-		get
-		{
-			return this._localData.currentState;
-		}
-		set
-		{
-			this._localData.currentState = value;
-			if (base.IsLocallyOwned)
-			{
-				this.CoconutCamera.SetVisualsActive(false);
-				this.CoconutCamera.SetRecordingState(false);
-				return;
-			}
-			this.CoconutCamera.SetVisualsActive(this.visible);
-			this.CoconutCamera.SetRecordingState(this.recording);
-		}
-	}
+	public LCKSocialCameraFollower SocialCameraFollower { get; private set; }
 
-	private static bool GetFlag(LckSocialCamera.CameraState cameraState, LckSocialCamera.CameraState flag)
+	public override void OnSpawned()
 	{
-		return (cameraState & flag) == flag;
-	}
-
-	private static LckSocialCamera.CameraState SetFlag(LckSocialCamera.CameraState cameraState, LckSocialCamera.CameraState flag, bool value)
-	{
-		if (value)
+		if (base.IsLocallyOwned)
 		{
-			cameraState |= flag;
+			this._localState = LckSocialCamera.CameraState.Empty;
+			this.visible = false;
+			this.recording = false;
+			this.IsOnNeck = false;
+			return;
 		}
-		else
+		if (base.Runner != null)
 		{
-			cameraState &= ~flag;
-		}
-		return cameraState;
-	}
-
-	public bool visible
-	{
-		get
-		{
-			return LckSocialCamera.GetFlag(this.currentState, LckSocialCamera.CameraState.Visible);
-		}
-		set
-		{
-			this.currentState = LckSocialCamera.SetFlag(this.currentState, LckSocialCamera.CameraState.Visible, value);
-		}
-	}
-
-	public bool recording
-	{
-		get
-		{
-			return LckSocialCamera.GetFlag(this.currentState, LckSocialCamera.CameraState.Recording);
-		}
-		set
-		{
-			this.currentState = LckSocialCamera.SetFlag(this.currentState, LckSocialCamera.CameraState.Recording, value);
+			LckSocialCamera.CameraState currentState = this._networkedData.currentState;
+			this.ApplyVisualState(currentState);
+			this._previousRenderedState = currentState;
 		}
 	}
 
 	public unsafe override void WriteDataFusion()
 	{
-		*this._networkedData = new LckSocialCamera.CameraData(this._localData.currentState);
+		*this._networkedData = new LckSocialCamera.CameraData(this._localState);
 	}
 
 	public override void ReadDataFusion()
@@ -103,7 +61,7 @@ public class LckSocialCamera : NetworkComponent, IGorillaSliceableSimple
 
 	protected override void WriteDataPUN(PhotonStream stream, PhotonMessageInfo info)
 	{
-		stream.SendNext(this.currentState);
+		stream.SendNext(this._localState);
 	}
 
 	protected override void ReadDataPUN(PhotonStream stream, PhotonMessageInfo info)
@@ -116,9 +74,126 @@ public class LckSocialCamera : NetworkComponent, IGorillaSliceableSimple
 		this.ReadDataShared(cameraState);
 	}
 
+	private void ReadDataShared(LckSocialCamera.CameraState newState)
+	{
+		if (newState != this._previousRenderedState)
+		{
+			this.ApplyVisualState(newState);
+			this._previousRenderedState = newState;
+		}
+	}
+
+	public bool IsOnNeck
+	{
+		get
+		{
+			return LckSocialCamera.GetFlag(base.IsLocallyOwned ? this._localState : this._previousRenderedState, LckSocialCamera.CameraState.OnNeck);
+		}
+		set
+		{
+			if (base.IsLocallyOwned)
+			{
+				this._localState = LckSocialCamera.SetFlag(this._localState, LckSocialCamera.CameraState.OnNeck, value);
+			}
+		}
+	}
+
+	public bool visible
+	{
+		get
+		{
+			return LckSocialCamera.GetFlag(base.IsLocallyOwned ? this._localState : this._previousRenderedState, LckSocialCamera.CameraState.Visible);
+		}
+		set
+		{
+			if (base.IsLocallyOwned)
+			{
+				this._localState = LckSocialCamera.SetFlag(this._localState, LckSocialCamera.CameraState.Visible, value);
+			}
+		}
+	}
+
+	public bool recording
+	{
+		get
+		{
+			return LckSocialCamera.GetFlag(base.IsLocallyOwned ? this._localState : this._previousRenderedState, LckSocialCamera.CameraState.Recording);
+		}
+		set
+		{
+			if (base.IsLocallyOwned)
+			{
+				this._localState = LckSocialCamera.SetFlag(this._localState, LckSocialCamera.CameraState.Recording, value);
+			}
+		}
+	}
+
+	private void ApplyVisualState(LckSocialCamera.CameraState newState)
+	{
+		if (this.m_isCorrupted)
+		{
+			return;
+		}
+		bool flag = LckSocialCamera.GetFlag(newState, LckSocialCamera.CameraState.Visible);
+		bool flag2 = LckSocialCamera.GetFlag(newState, LckSocialCamera.CameraState.Recording);
+		bool flag3 = LckSocialCamera.GetFlag(newState, LckSocialCamera.CameraState.OnNeck);
+		if (!base.IsLocallyOwned)
+		{
+			IGtCameraVisuals cameraVisuals = this.m_CameraVisuals;
+			if (cameraVisuals != null)
+			{
+				cameraVisuals.SetNetworkedVisualsActive(flag);
+			}
+			IGtCameraVisuals cameraVisuals2 = this.m_CameraVisuals;
+			if (cameraVisuals2 != null)
+			{
+				cameraVisuals2.SetRecordingState(flag2);
+			}
+			if (this.m_cameraType == LckSocialCamera.CameraType.Tablet)
+			{
+				if (flag3)
+				{
+					this.SocialCameraFollower.SetParentToRig();
+					return;
+				}
+				this.SocialCameraFollower.SetParentNull();
+			}
+			return;
+		}
+		IGtCameraVisuals cameraVisuals3 = this.m_CameraVisuals;
+		if (cameraVisuals3 != null)
+		{
+			cameraVisuals3.SetVisualsActive(false);
+		}
+		IGtCameraVisuals cameraVisuals4 = this.m_CameraVisuals;
+		if (cameraVisuals4 == null)
+		{
+			return;
+		}
+		cameraVisuals4.SetRecordingState(false);
+	}
+
+	private static bool GetFlag(LckSocialCamera.CameraState currentState, LckSocialCamera.CameraState flag)
+	{
+		return currentState.HasFlag(flag);
+	}
+
+	private static LckSocialCamera.CameraState SetFlag(LckSocialCamera.CameraState currentState, LckSocialCamera.CameraState flag, bool shouldBeSet)
+	{
+		if (shouldBeSet)
+		{
+			return currentState | flag;
+		}
+		return currentState & ~flag;
+	}
+
 	protected override void Awake()
 	{
 		base.Awake();
+		if (this.CameraVisuals != null && !this.CameraVisuals.TryGetComponent<IGtCameraVisuals>(out this.m_CameraVisuals))
+		{
+			Debug.LogError("LCK: LckSocialCamera failed to find IGtCameraVisuals component on CameraVisuals");
+		}
 		if (this.m_rigNetworkController.IsNull())
 		{
 			this.m_rigNetworkController = base.GetComponentInParent<VRRigSerializer>();
@@ -141,46 +216,53 @@ public class LckSocialCamera : NetworkComponent, IGorillaSliceableSimple
 		}
 	}
 
-	protected override void Start()
+	public unsafe void SetVisibility(bool isVisible)
 	{
+		if (!base.Object.HasInputAuthority)
+		{
+			return;
+		}
+		LckSocialCamera.CameraData cameraData = *this._networkedData;
+		cameraData.currentState = LckSocialCamera.SetFlag(cameraData.currentState, LckSocialCamera.CameraState.Visible, isVisible);
+		*this._networkedData = cameraData;
 	}
 
 	private void OnSuccesfullSpawn(in RigContainer rig, in PhotonMessageInfoWrapped info)
 	{
 		this._vrrig = rig.Rig;
-		LCKSocialCameraFollower lckcoconutCamera = rig.LCKCoconutCamera;
-		this._scaleTransform = lckcoconutCamera.ScaleTransform;
-		this.CoconutCamera = lckcoconutCamera.CoconutCamera;
-		this._visualObjects = lckcoconutCamera.VisualObjects;
-		this.m_coconutCamera = lckcoconutCamera;
+		LCKSocialCameraFollower lcksocialCameraFollower = ((this.m_cameraType == LckSocialCamera.CameraType.Cococam) ? rig.LckCococamFollower : rig.LCKTabletFollower);
+		this._scaleTransform = lcksocialCameraFollower.ScaleTransform;
+		this.CameraVisuals = lcksocialCameraFollower.CameraVisualsRoot;
+		this.m_CameraVisuals = this.CameraVisuals.GetComponent<IGtCameraVisuals>();
+		if (!base.IsLocallyOwned && lcksocialCameraFollower.GetComponent<ILckCosmeticDependantPlayerIdSupplier>() != null)
+		{
+			lcksocialCameraFollower.GetComponent<ILckCosmeticDependantPlayerIdSupplier>().UpdatePlayerId();
+		}
+		this.SocialCameraFollower = lcksocialCameraFollower;
 		this.m_isCorrupted = false;
-		if (this._vrrig.isOfflineVRRig)
+		if (!this._vrrig.isOfflineVRRig)
 		{
-			LckSocialCameraManager instance = LckSocialCameraManager.Instance;
-			if (instance != null)
-			{
-				instance.SetLckSocialCamera(this);
-			}
-			else
-			{
-				LckSocialCameraManager.OnManagerSpawned = (Action<LckSocialCameraManager>)Delegate.Combine(LckSocialCameraManager.OnManagerSpawned, new Action<LckSocialCameraManager>(this.OnManagerSpawned));
-				this.m_lckDelegateRegistered = true;
-			}
+			lcksocialCameraFollower.SetNetworkController(this);
+			return;
 		}
-		else
+		LckSocialCameraManager instance = LckSocialCameraManager.Instance;
+		if (!(instance != null))
 		{
-			lckcoconutCamera.SetNetworkController(this);
+			LckSocialCameraManager.OnManagerSpawned = (Action<LckSocialCameraManager>)Delegate.Combine(LckSocialCameraManager.OnManagerSpawned, new Action<LckSocialCameraManager>(this.OnManagerSpawned));
+			this.m_lckDelegateRegistered = true;
+			return;
 		}
-		this.visible = this.visible;
-	}
-
-	private void StoreRigReference()
-	{
-		RigContainer rigContainer;
-		if (base.Owner != null && !base.Owner.IsNull && VRRigCache.Instance.TryGetVrrig(base.Owner, out rigContainer))
+		LckSocialCamera.CameraType cameraType = this.m_cameraType;
+		if (cameraType == LckSocialCamera.CameraType.Cococam)
 		{
-			this._vrrig = rigContainer.Rig;
+			instance.SetLckSocialCococamCamera(this);
+			return;
 		}
+		if (cameraType != LckSocialCamera.CameraType.Tablet)
+		{
+			throw new ArgumentOutOfRangeException();
+		}
+		instance.SetLckSocialTabletCamera(this);
 	}
 
 	public void SliceUpdate()
@@ -189,7 +271,7 @@ public class LckSocialCamera : NetworkComponent, IGorillaSliceableSimple
 		{
 			return;
 		}
-		this.CoconutCamera.transform.localScale = Vector3.one * this._vrrig.scaleFactor;
+		this.CameraVisuals.transform.localScale = Vector3.one * this._vrrig.scaleFactor;
 	}
 
 	public new void OnEnable()
@@ -208,23 +290,27 @@ public class LckSocialCamera : NetworkComponent, IGorillaSliceableSimple
 		{
 			return;
 		}
-		if (this.m_coconutCamera.IsNotNull())
+		if (this.SocialCameraFollower.IsNotNull())
 		{
-			this.m_coconutCamera.RemoveNetworkController(this);
+			this.SocialCameraFollower.RemoveNetworkController(this);
 		}
 		this._scaleTransform = null;
-		this._visualObjects = null;
-		this.CoconutCamera = null;
+		this.CameraVisuals = null;
 	}
 
 	private void OnManagerSpawned(LckSocialCameraManager manager)
 	{
-		manager.SetLckSocialCamera(this);
-	}
-
-	private void ReadDataShared(LckSocialCamera.CameraState newState)
-	{
-		this.currentState = newState;
+		LckSocialCamera.CameraType cameraType = this.m_cameraType;
+		if (cameraType == LckSocialCamera.CameraType.Cococam)
+		{
+			manager.SetLckSocialCococamCamera(this);
+			return;
+		}
+		if (cameraType != LckSocialCamera.CameraType.Tablet)
+		{
+			throw new ArgumentOutOfRangeException();
+		}
+		manager.SetLckSocialTabletCamera(this);
 	}
 
 	public void TurnOff()
@@ -251,10 +337,7 @@ public class LckSocialCamera : NetworkComponent, IGorillaSliceableSimple
 	private Transform _scaleTransform;
 
 	[SerializeField]
-	public CoconutCamera CoconutCamera;
-
-	[SerializeField]
-	private List<GameObject> _visualObjects;
+	public GameObject CameraVisuals;
 
 	[SerializeField]
 	private VRRig _vrrig;
@@ -262,13 +345,18 @@ public class LckSocialCamera : NetworkComponent, IGorillaSliceableSimple
 	[SerializeField]
 	private VRRigSerializer m_rigNetworkController;
 
-	private LCKSocialCameraFollower m_coconutCamera;
+	[SerializeField]
+	private LckSocialCamera.CameraType m_cameraType;
 
 	private bool m_isCorrupted = true;
 
 	private bool m_lckDelegateRegistered;
 
-	private LckSocialCamera.CameraDataLocal _localData;
+	private IGtCameraVisuals m_CameraVisuals;
+
+	private LckSocialCamera.CameraState _localState;
+
+	private LckSocialCamera.CameraState _previousRenderedState;
 
 	[WeaverGenerated]
 	[DefaultForProperty("_networkedData", 0, 1)]
@@ -279,24 +367,26 @@ public class LckSocialCamera : NetworkComponent, IGorillaSliceableSimple
 	{
 		Empty,
 		Visible,
-		Recording
+		Recording,
+		OnNeck = 4
+	}
+
+	private enum CameraType
+	{
+		Cococam,
+		Tablet
 	}
 
 	[NetworkStructWeaved(1)]
 	[StructLayout(LayoutKind.Explicit, Size = 4)]
 	private struct CameraData : INetworkStruct
 	{
-		public CameraData(LckSocialCamera.CameraState currentState)
+		public CameraData(LckSocialCamera.CameraState state)
 		{
-			this.currentState = currentState;
+			this.currentState = state;
 		}
 
 		[FieldOffset(0)]
-		public LckSocialCamera.CameraState currentState;
-	}
-
-	private struct CameraDataLocal
-	{
 		public LckSocialCamera.CameraState currentState;
 	}
 }

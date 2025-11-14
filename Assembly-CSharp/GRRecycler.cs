@@ -1,4 +1,5 @@
 ﻿using System;
+using GorillaTagScripts.GhostReactor;
 using UnityEngine;
 
 public class GRRecycler : MonoBehaviourTick
@@ -37,9 +38,9 @@ public class GRRecycler : MonoBehaviourTick
 		return this.reactor.toolProgression.GetRecycleShiftCredit(type);
 	}
 
-	public void ScanItem(GRTool.GRToolType toolType)
+	public void ScanItem(GameEntityId id)
 	{
-		this.scanner.ScanItem(toolType);
+		this.scanner.ScanItem(id);
 	}
 
 	public void RecycleItem()
@@ -62,55 +63,22 @@ public class GRRecycler : MonoBehaviourTick
 	{
 		if (this.reactor == null)
 		{
+			Debug.LogFormat("GRRecycler reactor is null?", Array.Empty<object>());
 			return;
 		}
 		if (!this.reactor.grManager.IsAuthority())
 		{
+			Debug.LogFormat("GRRecycler is not authority.", Array.Empty<object>());
 			return;
 		}
-		GRTool.GRToolType grtoolType = GRTool.GRToolType.None;
 		GRTool componentInParent = other.gameObject.GetComponentInParent<GRTool>();
 		if (componentInParent == null)
 		{
+			Debug.LogFormat("GRRecycler Colliding Object is not a GRTool.", Array.Empty<object>());
 			return;
 		}
-		if (other.gameObject.GetComponentInParent<GRToolClub>() != null)
-		{
-			grtoolType = GRTool.GRToolType.Club;
-		}
-		else if (other.gameObject.GetComponentInParent<GRToolCollector>() != null)
-		{
-			grtoolType = GRTool.GRToolType.Collector;
-		}
-		else if (other.gameObject.GetComponentInParent<GRToolFlash>() != null)
-		{
-			grtoolType = GRTool.GRToolType.Flash;
-		}
-		else if (other.gameObject.GetComponentInParent<GRToolLantern>() != null)
-		{
-			grtoolType = GRTool.GRToolType.Lantern;
-		}
-		else if (other.gameObject.GetComponentInParent<GRToolRevive>() != null)
-		{
-			grtoolType = GRTool.GRToolType.Revive;
-		}
-		else if (other.gameObject.GetComponentInParent<GRToolShieldGun>() != null)
-		{
-			grtoolType = GRTool.GRToolType.ShieldGun;
-		}
-		else if (other.gameObject.GetComponentInParent<GRToolDirectionalShield>() != null)
-		{
-			grtoolType = GRTool.GRToolType.DirectionalShield;
-		}
-		else if (componentInParent.toolType == GRTool.GRToolType.HockeyStick)
-		{
-			grtoolType = componentInParent.toolType;
-		}
-		else if (componentInParent.toolType == GRTool.GRToolType.DockWrist)
-		{
-			grtoolType = componentInParent.toolType;
-		}
-		int recycleValue = this.GetRecycleValue(grtoolType);
+		GRTool.GRToolType toolType = other.gameObject.GetToolType();
+		int recycleValue = this.GetRecycleValue(toolType);
 		if (this.reactor != null)
 		{
 			int count = this.reactor.vrRigs.Count;
@@ -123,13 +91,20 @@ public class GRRecycler : MonoBehaviourTick
 				}
 			}
 		}
+		Debug.LogFormat("GRRecycler Recycle Value is {0}", new object[] { recycleValue });
 		if (GRPlayer.Get(componentInParent.gameEntity.lastHeldByActorNumber) == null)
 		{
+			Debug.LogFormat("GRRecycler Tool Not last held by a player (?), can't recycle.", Array.Empty<object>());
 			return;
 		}
-		if (grtoolType != GRTool.GRToolType.None)
+		Debug.LogFormat("GRRecycler Refunding player {0} {1} Currency and Destroying Tool.", new object[]
 		{
-			this.reactor.grManager.RequestRecycleItem(componentInParent.gameEntity.lastHeldByActorNumber, componentInParent.gameEntity.id, grtoolType);
+			componentInParent.gameEntity.lastHeldByActorNumber,
+			recycleValue
+		});
+		if (toolType != GRTool.GRToolType.None)
+		{
+			this.reactor.grManager.RequestRecycleItem(componentInParent.gameEntity.lastHeldByActorNumber, componentInParent.gameEntity.id, toolType);
 		}
 	}
 

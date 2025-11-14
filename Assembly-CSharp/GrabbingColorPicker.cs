@@ -17,19 +17,29 @@ public class GrabbingColorPicker : MonoBehaviour, IGorillaSliceableSimple
 		float @float = PlayerPrefs.GetFloat("redValue", 0f);
 		float float2 = PlayerPrefs.GetFloat("greenValue", 0f);
 		float float3 = PlayerPrefs.GetFloat("blueValue", 0f);
-		this.Segment1 = Mathf.RoundToInt(Mathf.Lerp(0f, 9f, @float));
-		this.Segment2 = Mathf.RoundToInt(Mathf.Lerp(0f, 9f, float2));
-		this.Segment3 = Mathf.RoundToInt(Mathf.Lerp(0f, 9f, float3));
-		this.R_PushSlider.SetProgress(@float);
-		this.G_PushSlider.SetProgress(float2);
-		this.B_PushSlider.SetProgress(float3);
+		this.LoadPlayerColor(@float, float2, float3);
+	}
+
+	private void LoadPlayerColor(float r, float g, float b)
+	{
+		this.Segment1 = Mathf.RoundToInt(Mathf.Lerp(0f, 9f, r));
+		this.Segment2 = Mathf.RoundToInt(Mathf.Lerp(0f, 9f, g));
+		this.Segment3 = Mathf.RoundToInt(Mathf.Lerp(0f, 9f, b));
+		this.R_PushSlider.SetProgress(r);
+		this.G_PushSlider.SetProgress(g);
+		this.B_PushSlider.SetProgress(b);
 		this.UpdateDisplay();
 	}
 
 	public void OnEnable()
 	{
 		GorillaSlicerSimpleManager.RegisterSliceable(this, GorillaSlicerSimpleManager.UpdateStep.Update);
-		if (this.setPlayerColor && GorillaTagger.Instance && GorillaTagger.Instance.offlineVRRig)
+		if (!this.setPlayerColor)
+		{
+			return;
+		}
+		CosmeticsController.OnPlayerColorSet = (Action<float, float, float>)Delegate.Combine(CosmeticsController.OnPlayerColorSet, new Action<float, float, float>(this.LoadPlayerColor));
+		if (GorillaTagger.Instance && GorillaTagger.Instance.offlineVRRig)
 		{
 			GorillaTagger.Instance.offlineVRRig.OnColorChanged += this.HandleLocalColorChanged;
 		}
@@ -38,6 +48,11 @@ public class GrabbingColorPicker : MonoBehaviour, IGorillaSliceableSimple
 	public void OnDisable()
 	{
 		GorillaSlicerSimpleManager.UnregisterSliceable(this, GorillaSlicerSimpleManager.UpdateStep.Update);
+		if (!this.setPlayerColor)
+		{
+			return;
+		}
+		CosmeticsController.OnPlayerColorSet = (Action<float, float, float>)Delegate.Remove(CosmeticsController.OnPlayerColorSet, new Action<float, float, float>(this.LoadPlayerColor));
 		if (GorillaTagger.Instance && GorillaTagger.Instance.offlineVRRig)
 		{
 			GorillaTagger.Instance.offlineVRRig.OnColorChanged -= this.HandleLocalColorChanged;

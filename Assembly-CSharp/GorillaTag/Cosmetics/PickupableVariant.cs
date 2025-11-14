@@ -9,7 +9,7 @@ namespace GorillaTag.Cosmetics
 		{
 		}
 
-		protected internal virtual void Pickup()
+		protected internal virtual void Pickup(bool isAutoPickup = false)
 		{
 		}
 

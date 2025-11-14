@@ -100,7 +100,11 @@ public class GorillaTagger : MonoBehaviour, IGuidedRefReceiverMono, IGuidedRefMo
 		this.RecoverMissingRefs();
 		this.MirrorCameraCullingMask = new Watchable<int>(this.BaseMirrorCameraCullingMask);
 		this.stiltTagData[0].isLeftHand = true;
+		this.stiltTagData[4].isLeftHand = true;
+		this.stiltTagData[5].isLeftHand = true;
 		this.stiltTagData[2].isLeftHand = true;
+		this.stiltTagData[6].isLeftHand = true;
+		this.stiltTagData[7].isLeftHand = true;
 		if (GorillaTagger._instance != null && GorillaTagger._instance != this)
 		{
 			Object.Destroy(base.gameObject);
@@ -353,7 +357,7 @@ public class GorillaTagger : MonoBehaviour, IGuidedRefReceiverMono, IGuidedRefMo
 			this.<LateUpdate>g__TryTaggingAllHitsOverlap|133_0(false, this.maxTagDistance, true, false, ref CS$<>8__locals1);
 			this.nonAllocHits = Physics.OverlapCapsuleNonAlloc(position3, position2, num5, this.colliderOverlaps, this.gorillaTagColliderLayerMask, QueryTriggerInteraction.Collide);
 			this.<LateUpdate>g__TryTaggingAllHitsOverlap|133_0(false, this.maxTagDistance, true, false, ref CS$<>8__locals1);
-			for (int i = 0; i < 4; i++)
+			for (int i = 0; i < 12; i++)
 			{
 				GorillaTagger.StiltTagData stiltTagData = this.stiltTagData[i];
 				if (stiltTagData.hasLastPosition && stiltTagData.hasCurrentPosition && (stiltTagData.canTag || stiltTagData.canStun))
@@ -394,7 +398,7 @@ public class GorillaTagger : MonoBehaviour, IGuidedRefReceiverMono, IGuidedRefMo
 		flag = false;
 		stiltID = StiltID.None;
 		this.ProcessHandTapping(in flag, in stiltID, ref this.lastRightTap, ref this.lastRightUpTap, ref this.rightHandWasTouching, in this.rightHandSlideSource);
-		for (int j = 0; j < 4; j++)
+		for (int j = 0; j < 12; j++)
 		{
 			GorillaTagger.StiltTagData stiltTagData2 = this.stiltTagData[j];
 			if (stiltTagData2.hasLastPosition && stiltTagData2.hasCurrentPosition)
@@ -409,7 +413,7 @@ public class GorillaTagger : MonoBehaviour, IGuidedRefReceiverMono, IGuidedRefMo
 		this.lastRightHandPositionForTag = position2;
 		this.lastBodyPositionForTag = position4;
 		this.lastHeadPositionForTag = position3;
-		for (int k = 0; k < 4; k++)
+		for (int k = 0; k < 12; k++)
 		{
 			GorillaTagger.StiltTagData stiltTagData3 = this.stiltTagData[k];
 			if (stiltTagData3.hasLastPosition || stiltTagData3.hasCurrentPosition)
@@ -1179,7 +1183,7 @@ public class GorillaTagger : MonoBehaviour, IGuidedRefReceiverMono, IGuidedRefMo
 
 	private Vector3 lastHeadPositionForTag;
 
-	private GorillaTagger.StiltTagData[] stiltTagData = new GorillaTagger.StiltTagData[4];
+	private GorillaTagger.StiltTagData[] stiltTagData = new GorillaTagger.StiltTagData[12];
 
 	public Transform rightHandTransform;
 

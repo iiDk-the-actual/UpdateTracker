@@ -187,7 +187,7 @@ public class GTAnimator : MonoBehaviour, IDelayedExecListener
 	[SerializeField]
 	private GameObject[] m_animatedGameObjects;
 
-	[Tooltip("If an enum map value is not assigned then ")]
+	[Tooltip("If an enum map value is not defined then these will be activated.")]
 	[SerializeField]
 	private GameObject[] m_defaultStaticGameObjects;
 

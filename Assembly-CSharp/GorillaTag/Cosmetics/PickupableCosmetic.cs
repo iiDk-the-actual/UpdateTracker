@@ -37,12 +37,15 @@ namespace GorillaTag.Cosmetics
 			}
 		}
 
-		protected internal override void Pickup()
+		protected internal override void Pickup(bool isAutoPickup = false)
 		{
-			UnityEvent onPickupShared = this.OnPickupShared;
-			if (onPickupShared != null)
+			if (!isAutoPickup)
 			{
-				onPickupShared.Invoke();
+				UnityEvent onPickupShared = this.OnPickupShared;
+				if (onPickupShared != null)
+				{
+					onPickupShared.Invoke();
+				}
 			}
 			this.rb.linearVelocity = Vector3.zero;
 			this.rb.isKinematic = true;
@@ -84,7 +87,7 @@ namespace GorillaTag.Cosmetics
 		private IEnumerator DelayedPickup_Internal()
 		{
 			yield return new WaitForSeconds(1f);
-			this.Pickup();
+			this.Pickup(false);
 			yield break;
 		}
 
@@ -115,7 +118,7 @@ namespace GorillaTag.Cosmetics
 			{
 				if (Time.time > this.respawnDelay + this.brokenTime)
 				{
-					this.Pickup();
+					this.Pickup(false);
 				}
 				return;
 			}
@@ -129,11 +132,20 @@ namespace GorillaTag.Cosmetics
 			}
 			if (this.autoPickupAfterSeconds > 0f && this.placedOnFloor && Time.time - this.placedOnFloorTime > this.autoPickupAfterSeconds)
 			{
-				this.Pickup();
+				this.Pickup(true);
+				ThrowablePickupableCosmetic throwablePickupableCosmetic = this.transferrableParent as ThrowablePickupableCosmetic;
+				if (throwablePickupableCosmetic)
+				{
+					UnityEvent onReturnToDockPositionShared = throwablePickupableCosmetic.OnReturnToDockPositionShared;
+					if (onReturnToDockPositionShared != null)
+					{
+						onReturnToDockPositionShared.Invoke();
+					}
+				}
 			}
 			if (this.autoPickupDistance > 0f && this.transferrableParent != null && (this.transferrableParent.ownerRig.transform.position - base.transform.position).IsLongerThan(this.autoPickupDistance))
 			{
-				this.Pickup();
+				this.Pickup(false);
 			}
 			if (!this.placedOnFloor && base.enabled)
 			{

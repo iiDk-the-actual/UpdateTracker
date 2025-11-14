@@ -32,6 +32,16 @@ public class GhostReactorLevelGenConfig : ScriptableObject
 			treeLevelConfig2.maxHubs = 0;
 			this.treeLevels[this.treeLevels.Count - 1] = treeLevelConfig2;
 		}
+		using (List<GREnemyCount>.Enumerator enumerator = this.minEnemyKills.GetEnumerator())
+		{
+			while (enumerator.MoveNext())
+			{
+				if (enumerator.Current.Count < 0)
+				{
+					Debug.LogError("Ghost Reactor Level Gen Setup Error: cannot have negative required enemy kills");
+				}
+			}
+		}
 	}
 
 	public int shiftDuration;
@@ -43,6 +53,8 @@ public class GhostReactorLevelGenConfig : ScriptableObject
 	public int sentientCoresRequired;
 
 	public int maxPlayerDeaths = -1;
+
+	public List<GREnemyCount> minEnemyKills = new List<GREnemyCount>();
 
 	[ColorUsage(true, true)]
 	public Color ambientLight = Color.black;

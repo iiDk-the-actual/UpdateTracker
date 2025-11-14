@@ -10,24 +10,28 @@ namespace GorillaTag.Cosmetics
 {
 	public class ThrowablePickupableCosmetic : TransferrableObject
 	{
+		private new void Awake()
+		{
+			this.transferrableObject = base.GetComponent<TransferrableObject>();
+		}
+
 		internal override void OnEnable()
 		{
 			base.OnEnable();
 			if (this._events == null)
 			{
 				this._events = base.gameObject.GetOrAddComponent<RubberDuckEvents>();
-				NetPlayer netPlayer = ((base.myOnlineRig != null) ? base.myOnlineRig.creator : ((base.myRig != null) ? ((base.myRig.creator != null) ? base.myRig.creator : NetworkSystem.Instance.LocalPlayer) : null));
-				if (netPlayer != null)
+				this.owner = ((this.transferrableObject.myOnlineRig != null) ? this.transferrableObject.myOnlineRig.creator : ((this.transferrableObject.myRig != null) ? (this.transferrableObject.myRig.creator ?? NetworkSystem.Instance.LocalPlayer) : null));
+				if (this.owner != null)
 				{
-					this._events.Init(netPlayer);
-				}
-				else
-				{
-					Debug.LogError("Failed to get a reference to the Photon Player needed to hook up the cosmetic event");
+					this._events.Init(this.owner);
+					this.isLocal = this.owner.IsLocal;
 				}
 			}
 			if (this._events != null)
 			{
+				this._events.Activate.reliable = true;
+				this._events.Deactivate.reliable = true;
 				this._events.Activate += this.OnReleaseEvent;
 				this._events.Deactivate += this.OnReturnToDockEvent;
 			}
@@ -40,7 +44,7 @@ namespace GorillaTag.Cosmetics
 			{
 				this._events.Activate -= this.OnReleaseEvent;
 				this._events.Deactivate -= this.OnReturnToDockEvent;
-				Object.Destroy(this._events);
+				this._events.Dispose();
 				this._events = null;
 			}
 			if (this.pickupableVariant != null && this.pickupableVariant.enabled)
@@ -63,7 +67,7 @@ namespace GorillaTag.Cosmetics
 				}
 				base.transform.position = this.pickupableVariant.transform.position;
 				base.transform.rotation = this.pickupableVariant.transform.rotation;
-				this.pickupableVariant.Pickup();
+				this.pickupableVariant.Pickup(false);
 				if (grabbingHand == EquipmentInteractor.instance.leftHand && this.currentState == TransferrableObject.PositionState.OnLeftArm)
 				{
 					this.canAutoGrabLeft = false;
@@ -81,11 +85,6 @@ namespace GorillaTag.Cosmetics
 			if (onGrabLocal != null)
 			{
 				onGrabLocal.Invoke();
-			}
-			UnityEvent onGrabShared = this.OnGrabShared;
-			if (onGrabShared != null)
-			{
-				onGrabShared.Invoke();
 			}
 			base.OnGrab(pointGrabbed, grabbingHand);
 		}
@@ -109,8 +108,7 @@ namespace GorillaTag.Cosmetics
 			{
 				if (flag2 && this._events.Activate != null)
 				{
-					this._events.Activate.RaiseOthers(new object[] { true, position, averageVelocity, scale });
-					this.OnReleaseEventLocal(position, averageVelocity, scale);
+					this._events.Activate.RaiseAll(new object[] { true, position, averageVelocity, scale });
 				}
 				else if (!flag2 && this._events.Deactivate != null)
 				{
@@ -191,13 +189,7 @@ namespace GorillaTag.Cosmetics
 					}
 					return;
 				}
-				this.pickupableVariant.Pickup();
-				UnityEvent onGrabShared = this.OnGrabShared;
-				if (onGrabShared == null)
-				{
-					return;
-				}
-				onGrabShared.Invoke();
+				this.pickupableVariant.Pickup(false);
 				return;
 			}
 		}
@@ -273,9 +265,13 @@ namespace GorillaTag.Cosmetics
 		[FormerlySerializedAs("OnGrabFromDockPosition")]
 		public UnityEvent OnGrabLocal;
 
-		public UnityEvent OnGrabShared;
-
 		private RubberDuckEvents _events;
+
+		private TransferrableObject transferrableObject;
+
+		private bool isLocal;
+
+		private NetPlayer owner;
 
 		private CallLimiter callLimiterRelease = new CallLimiter(10, 2f, 0.5f);
 

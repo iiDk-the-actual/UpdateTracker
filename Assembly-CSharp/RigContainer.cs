@@ -55,11 +55,19 @@ public class RigContainer : MonoBehaviour
 		}
 	}
 
-	public LCKSocialCameraFollower LCKCoconutCamera
+	public LCKSocialCameraFollower LckCococamFollower
 	{
 		get
 		{
-			return this.m_lckCoconutCamera;
+			return this.m_lckCococamFollower;
+		}
+	}
+
+	public LCKSocialCameraFollower LCKTabletFollower
+	{
+		get
+		{
+			return this.m_lckTablet;
 		}
 	}
 
@@ -465,7 +473,10 @@ public class RigContainer : MonoBehaviour
 	private List<LoudSpeakerNetwork> loudSpeakerNetworks;
 
 	[SerializeField]
-	private LCKSocialCameraFollower m_lckCoconutCamera;
+	private LCKSocialCameraFollower m_lckCococamFollower;
+
+	[SerializeField]
+	private LCKSocialCameraFollower m_lckTablet;
 
 	private PhotonVoiceView voiceView;
 

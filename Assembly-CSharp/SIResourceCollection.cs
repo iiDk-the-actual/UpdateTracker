@@ -44,11 +44,11 @@ public class SIResourceCollection : MonoBehaviour, ITouchScreenStation
 
 	private void CollectButtonColliders()
 	{
-		SIResourceCollection.<>c__DisplayClass44_0 CS$<>8__locals1;
+		SIResourceCollection.<>c__DisplayClass45_0 CS$<>8__locals1;
 		CS$<>8__locals1.buttons = base.GetComponentsInChildren<SITouchscreenButton>(true).ToList<SITouchscreenButton>();
-		SIResourceCollection.<CollectButtonColliders>g__RemoveButtonsInside|44_2((from d in base.GetComponentsInChildren<DestroyIfNotBeta>()
+		SIResourceCollection.<CollectButtonColliders>g__RemoveButtonsInside|45_2((from d in base.GetComponentsInChildren<DestroyIfNotBeta>()
 			select d.gameObject).ToArray<GameObject>(), ref CS$<>8__locals1);
-		SIResourceCollection.<CollectButtonColliders>g__RemoveButtonsInside|44_2(new GameObject[] { this.helpScreen }, ref CS$<>8__locals1);
+		SIResourceCollection.<CollectButtonColliders>g__RemoveButtonsInside|45_2(new GameObject[] { this.helpScreen }, ref CS$<>8__locals1);
 		this._nonPopupButtonColliders = CS$<>8__locals1.buttons.Select((SITouchscreenButton b) => b.GetComponent<Collider>()).ToList<Collider>();
 	}
 
@@ -308,6 +308,14 @@ public class SIResourceCollection : MonoBehaviour, ITouchScreenStation
 
 	public void TouchscreenButtonPressed(SITouchscreenButton.SITouchscreenButtonType buttonType, int data, int actorNr)
 	{
+		if (actorNr == SIPlayer.LocalPlayer.ActorNr && (this.ActivePlayer == null || this.ActivePlayer != SIPlayer.LocalPlayer))
+		{
+			this.parentTerminal.PlayWrongPlayerBuzz(this.uiCenter);
+		}
+		else
+		{
+			this.soundBankPlayer.Play();
+		}
 		if (actorNr == SIPlayer.LocalPlayer.ActorNr && this.ActivePlayer == SIPlayer.LocalPlayer && this.currentState == SIResourceCollection.ResourceCollectorTerminalState.PurchaseStart && buttonType == SITouchscreenButton.SITouchscreenButtonType.Confirm)
 		{
 			bool flag = ProgressionManager.Instance.GetShinyRocksTotal() >= 500;
@@ -360,7 +368,6 @@ public class SIResourceCollection : MonoBehaviour, ITouchScreenStation
 		if (!this.IsAuthority)
 		{
 			this.parentTerminal.TouchscreenButtonPressed(buttonType, data, actorNr, SICombinedTerminal.TerminalSubFunction.ResourceCollection);
-			this.soundBankPlayer.Play();
 			return;
 		}
 		if (this.ActivePlayer == null || actorNr != this.ActivePlayer.ActorNr)
@@ -450,7 +457,7 @@ public class SIResourceCollection : MonoBehaviour, ITouchScreenStation
 	}
 
 	[CompilerGenerated]
-	internal static void <CollectButtonColliders>g__RemoveButtonsInside|44_2(GameObject[] roots, ref SIResourceCollection.<>c__DisplayClass44_0 A_1)
+	internal static void <CollectButtonColliders>g__RemoveButtonsInside|45_2(GameObject[] roots, ref SIResourceCollection.<>c__DisplayClass45_0 A_1)
 	{
 		for (int i = 0; i < roots.Length; i++)
 		{
@@ -501,6 +508,8 @@ public class SIResourceCollection : MonoBehaviour, ITouchScreenStation
 	public GameObject purchasingFailure;
 
 	public GameObject popupScreen;
+
+	public Transform uiCenter;
 
 	[Header("Purchasing Pages")]
 	public TextMeshProUGUI shinyRockInfo;

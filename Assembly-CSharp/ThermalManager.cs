@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using GorillaTag.Cosmetics;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -44,6 +45,11 @@ public class ThermalManager : MonoBehaviour, IGorillaSliceableSimple
 				num2 += thermalSourceVolume.celsius * num4;
 			}
 			thermalReceiver.celsius = Mathf.Lerp(thermalReceiver.celsius, num2, num * thermalReceiver.conductivity);
+			ContinuousPropertyArray continuousProperties = thermalReceiver.continuousProperties;
+			if (continuousProperties != null)
+			{
+				continuousProperties.ApplyAll(thermalReceiver.celsius);
+			}
 			if (!thermalReceiver.wasAboveThreshold && thermalReceiver.celsius > thermalReceiver.temperatureThreshold)
 			{
 				thermalReceiver.wasAboveThreshold = true;

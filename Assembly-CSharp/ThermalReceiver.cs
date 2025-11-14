@@ -1,5 +1,6 @@
 ﻿using System;
 using GorillaTag;
+using GorillaTag.Cosmetics;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -47,6 +48,8 @@ public class ThermalReceiver : MonoBehaviour, IDynamicFloat, IResettableItem
 
 	[Tooltip("How fast the temperature should change overtime. 1.0 would be instantly.")]
 	public float conductivity = 0.3f;
+
+	public ContinuousPropertyArray continuousProperties;
 
 	[Tooltip("Optional: Fire events if temperature goes below or above this threshold - Celsius")]
 	public float temperatureThreshold;

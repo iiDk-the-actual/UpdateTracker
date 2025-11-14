@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Serialization;
@@ -21,41 +20,48 @@ namespace GorillaTag.Cosmetics
 					{
 						if (!(o is AudioSource))
 						{
-							if (!(o is Rigidbody))
+							if (!(o is VoicePitchShiftCosmetic))
 							{
-								if (!(o is Transform))
+								if (!(o is Rigidbody))
 								{
-									if (!(o is Renderer))
+									if (!(o is Transform))
 									{
-										if (!(o is Behaviour))
+										if (!(o is Renderer))
 										{
-											if (!(o is GameObject))
+											if (!(o is Behaviour))
 											{
-												cast = ContinuousProperty.Cast.Null;
+												if (!(o is GameObject))
+												{
+													cast = ContinuousProperty.Cast.Null;
+												}
+												else
+												{
+													cast = ContinuousProperty.Cast.GameObject;
+												}
 											}
 											else
 											{
-												cast = ContinuousProperty.Cast.GameObject;
+												cast = ContinuousProperty.Cast.Behaviour;
 											}
 										}
 										else
 										{
-											cast = ContinuousProperty.Cast.Behaviour;
+											cast = ContinuousProperty.Cast.Renderer;
 										}
 									}
 									else
 									{
-										cast = ContinuousProperty.Cast.Renderer;
+										cast = ContinuousProperty.Cast.Transform;
 									}
 								}
 								else
 								{
-									cast = ContinuousProperty.Cast.Transform;
+									cast = ContinuousProperty.Cast.Rigidbody;
 								}
 							}
 							else
 							{
-								cast = ContinuousProperty.Cast.Rigidbody;
+								cast = ContinuousProperty.Cast.VoicePitchShiftCosmetic;
 							}
 						}
 						else
@@ -117,34 +123,20 @@ namespace GorillaTag.Cosmetics
 			return (flags & test) > ContinuousProperty.DataFlags.None;
 		}
 
-		private static IEnumerable<Object> GetAllObjects(Object target)
+		private static void GetAllValidObjectsNonAlloc(Transform t, List<Object> objects)
 		{
-			Component component = target as Component;
-			IEnumerable<Object> enumerable;
-			if (component == null)
+			objects.Clear();
+			objects.Add(t.gameObject);
+			foreach (Component @object in t.GetComponents<Component>())
 			{
-				GameObject gameObject = target as GameObject;
-				if (gameObject == null)
+				if (ContinuousProperty.IsValidObject(@object.GetType()))
 				{
-					enumerable = null;
-				}
-				else
-				{
-					enumerable = (from c in gameObject.GetComponents<Component>()
-						where ContinuousProperty.IsValidComponent(c.GetType())
-						select c).Append(gameObject);
+					objects.Add(@object);
 				}
 			}
-			else
-			{
-				enumerable = (from c in component.GetComponents<Component>()
-					where ContinuousProperty.IsValidComponent(c.GetType())
-					select c).Append(component.gameObject);
-			}
-			return enumerable;
 		}
 
-		private static bool IsValidComponent(global::System.Type t)
+		private static bool IsValidObject(global::System.Type t)
 		{
 			return t != typeof(Renderer) && t != typeof(ParticleSystemRenderer);
 		}
@@ -156,8 +148,9 @@ namespace GorillaTag.Cosmetics
 		public ContinuousProperty(ContinuousPropertyModeSO mode, Transform initialTarget, Vector2 range = default(Vector2))
 		{
 			this.mode = mode;
+			this.target = initialTarget;
 			this.range = range;
-			this.FindATarget();
+			this.ShiftTarget(0);
 		}
 
 		private string ModeTooltip
@@ -172,14 +165,6 @@ namespace GorillaTag.Cosmetics
 			}
 		}
 
-		private bool ModeErrorVisible
-		{
-			get
-			{
-				return !this.IsValid();
-			}
-		}
-
 		private bool ModeInfoVisible
 		{
 			get
@@ -188,16 +173,23 @@ namespace GorillaTag.Cosmetics
 			}
 		}
 
+		private bool ModeErrorVisible
+		{
+			get
+			{
+				return !this.IsValid();
+			}
+		}
+
 		private string ModeErrorMessage
 		{
 			get
 			{
-				string text = "I can't find a target on '{0}' to apply my '{1}' to. Did you drag in the wrong GameObject?\n\n{2}";
-				Object @object = this.target;
-				object obj = ((@object != null) ? @object.name : null);
-				object obj2 = this.MyType;
-				ContinuousPropertyModeSO continuousPropertyModeSO = this.mode;
-				return string.Format(text, obj, obj2, (continuousPropertyModeSO != null) ? continuousPropertyModeSO.ListValidCasts() : null);
+				if (!(this.mode != null))
+				{
+					return "How did we get here?";
+				}
+				return "I couldn't find any valid target to apply my '" + this.mode.name + "' to in the whole prefab.\n\n" + this.mode.ListValidCasts();
 			}
 		}
 
@@ -249,20 +241,11 @@ namespace GorillaTag.Cosmetics
 			}
 		}
 
-		private bool AssignButtonVisible
-		{
-			get
-			{
-				return this.mode != null && (this.target == null || !this.mode.IsCastValid(ContinuousProperty.GetTargetCast(this.target)));
-			}
-		}
-
 		private bool ShiftButtonsVisible
 		{
 			get
 			{
-				IEnumerable<Object> allValidObjectsOnMyTarget = this.GetAllValidObjectsOnMyTarget();
-				return allValidObjectsOnMyTarget != null && allValidObjectsOnMyTarget.Count<Object>() > 1;
+				return this.mode != null;
 			}
 		}
 
@@ -272,24 +255,6 @@ namespace GorillaTag.Cosmetics
 			{
 				return this.target;
 			}
-		}
-
-		private void FindATarget()
-		{
-		}
-
-		private IEnumerable<Object> GetAllValidObjectsOnMyTarget()
-		{
-			if (!this.mode)
-			{
-				return null;
-			}
-			IEnumerable<Object> allObjects = ContinuousProperty.GetAllObjects(this.target);
-			if (allObjects == null)
-			{
-				return null;
-			}
-			return allObjects.Where((Object c) => this.mode.IsCastValid(ContinuousProperty.GetTargetCast(c)));
 		}
 
 		private void PreviousTarget()
@@ -302,32 +267,66 @@ namespace GorillaTag.Cosmetics
 			this.ShiftTarget(1);
 		}
 
-		public bool ShiftTarget(int amount)
+		public bool ShiftTarget(int shiftAmount)
 		{
-			IEnumerable<Object> allValidObjectsOnMyTarget = this.GetAllValidObjectsOnMyTarget();
-			List<Object> list = ((allValidObjectsOnMyTarget != null) ? allValidObjectsOnMyTarget.ToList<Object>() : null);
-			if (list == null || list.Count == 0)
+			if (this.mode == null)
 			{
 				return false;
 			}
-			int num = Mathf.Max(list.IndexOf(this.target), 0);
-			this.target = list[(num + amount + list.Count) % list.Count];
+			int num = -1;
+			Transform transform;
+			if (!(this.target != null))
+			{
+				transform = null;
+			}
+			else
+			{
+				GameObject gameObject = this.target as GameObject;
+				transform = ((gameObject != null) ? gameObject.transform : null) ?? ((Component)this.target).transform;
+			}
+			Transform transform2 = transform;
+			Transform transform3 = transform2;
+			if (transform3 == null)
+			{
+				return false;
+			}
+			Stack<Transform> stack = new Stack<Transform>();
+			stack.Push(transform3);
+			List<Object> list = new List<Object>();
+			List<Object> list2 = new List<Object>();
+			Transform transform4;
+			while (stack.TryPop(out transform4))
+			{
+				if (num < 0 && transform4 == transform2)
+				{
+					num = list.Count;
+				}
+				ContinuousProperty.GetAllValidObjectsNonAlloc(transform4, list2);
+				foreach (Object @object in list2)
+				{
+					if (this.mode.IsCastValid(ContinuousProperty.GetTargetCast(@object)))
+					{
+						if (@object == this.target)
+						{
+							num = list.Count;
+						}
+						list.Add(@object);
+					}
+				}
+				for (int i = transform4.childCount - 1; i >= 0; i--)
+				{
+					stack.Push(transform4.GetChild(i));
+				}
+			}
+			if (list.Count == 0)
+			{
+				return false;
+			}
+			this.target = list[(num < 0) ? 0 : ((num + shiftAmount + list.Count) % list.Count)];
 			return true;
 		}
 
-		private static AnimationCurve StepCurve
-		{
-			get
-			{
-				return new AnimationCurve(new Keyframe[]
-				{
-					new Keyframe(0f, 0f, float.PositiveInfinity, float.PositiveInfinity),
-					new Keyframe(0.5f, 1f, float.PositiveInfinity, float.PositiveInfinity)
-				});
-			}
-		}
-
-		private void OnValueChanged()
+		private void OnModeOrTargetChanged()
 		{
 			if (!this.IsValid())
 			{
@@ -457,7 +456,7 @@ namespace GorillaTag.Cosmetics
 			}
 		}
 
-		private bool HasAxis
+		private bool HasAxisMode
 		{
 			get
 			{
@@ -473,7 +472,7 @@ namespace GorillaTag.Cosmetics
 			}
 		}
 
-		private bool HasInterpolation
+		private bool HasInterpolationMode
 		{
 			get
 			{
@@ -549,6 +548,14 @@ namespace GorillaTag.Cosmetics
 			}
 		}
 
+		private bool HasEventMode
+		{
+			get
+			{
+				return this.MyType == ContinuousProperty.Type.UnityEvent && !this.HasAnyFlag(ContinuousProperty.DataFlags.HasThreshold);
+			}
+		}
+
 		private bool HasUnityEvent
 		{
 			get
@@ -567,9 +574,11 @@ namespace GorillaTag.Cosmetics
 			ContinuousProperty.Type type = this.mode.type;
 			ContinuousProperty.Cast cast = this.mode.GetClosestCast(ContinuousProperty.GetTargetCast(this.target));
 			ContinuousProperty.DataFlags dataFlags = this.mode.GetFlagsForCast(cast);
-			if ((type == ContinuousProperty.Type.BezierInterpolation && this.MissingBezier) || (type == ContinuousProperty.Type.TransformInterpolation && this.MissingXforms) || (type == ContinuousProperty.Type.UnityEvent && this.unityEvent == null))
+			if (cast == ContinuousProperty.Cast.Null || (type == ContinuousProperty.Type.BezierInterpolation && this.MissingBezier) || (type == ContinuousProperty.Type.TransformInterpolation && this.MissingXforms) || (type == ContinuousProperty.Type.UnityEvent && this.unityEvent == null))
 			{
 				this.internalSwitchValue = 0;
+				this.IsShaderProperty_Cached = false;
+				this.UsesThreshold_Cached = false;
 				return;
 			}
 			if (type == ContinuousProperty.Type.Color && ContinuousProperty.CastMatches(ContinuousProperty.Cast.Renderer, cast))
@@ -584,7 +593,7 @@ namespace GorillaTag.Cosmetics
 				type = ContinuousProperty.Type.EnableDisable;
 				cast = ContinuousProperty.Cast.Behaviour;
 			}
-			this.internalSwitchValue = (int)(type | (ContinuousProperty.Type)cast | (ContinuousProperty.Type)(ContinuousProperty.HasAllFlags(dataFlags, ContinuousProperty.DataFlags.HasAxis) ? this.localAxis : ((ContinuousProperty.RotationAxis)0)) | (ContinuousProperty.Type)(ContinuousProperty.HasAllFlags(dataFlags, ContinuousProperty.DataFlags.HasInterpolation) ? this.interpolationMode : ((ContinuousProperty.InterpolationMode)0)));
+			this.internalSwitchValue = (int)(type | (ContinuousProperty.Type)cast | (ContinuousProperty.Type)(this.HasAxisMode ? this.localAxis : ((ContinuousProperty.RotationAxis)0)) | (ContinuousProperty.Type)(this.HasInterpolationMode ? this.interpolationMode : ((ContinuousProperty.InterpolationMode)0)) | (ContinuousProperty.Type)(this.HasEventMode ? this.eventMode : ((ContinuousProperty.EventMode)0)));
 			this.IsShaderProperty_Cached = ContinuousProperty.HasAllFlags(dataFlags, ContinuousProperty.DataFlags.IsShaderProperty);
 			this.UsesThreshold_Cached = ContinuousProperty.HasAllFlags(dataFlags, ContinuousProperty.DataFlags.HasThreshold);
 			if (cast == ContinuousProperty.Cast.ParticleSystem)
@@ -620,101 +629,94 @@ namespace GorillaTag.Cosmetics
 				return;
 			}
 			this.previousBoolValue = !this.previousBoolValue;
-			this.Apply(0f, null);
+			this.Apply(0f, 0f, null);
 		}
 
-		public void Apply(float f, MaterialPropertyBlock mpb)
+		public void Apply(float f, float deltaTime, MaterialPropertyBlock mpb)
 		{
 			int num = this.internalSwitchValue | (int)this.CheckThreshold(f);
-			if (num <= 1056784)
+			if (num <= 1057808)
 			{
-				if (num <= 5131)
+				if (num <= 6157)
 				{
-					if (num <= 3073)
+					if (num <= 3083)
 					{
-						if (num <= 1041)
+						if (num <= 2049)
 						{
 							if (num == 0)
 							{
 								return;
 							}
-							if (num != 1041)
+							if (num != 2049)
 							{
 								return;
 							}
+							((Transform)this.target).localScale = this.curve.Evaluate(f) * Vector3.one;
+							return;
 						}
 						else
 						{
-							if (num == 2049)
-							{
-								((Transform)this.target).localScale = this.curve.Evaluate(f) * Vector3.one;
-								return;
-							}
 							if (num == 3072)
 							{
 								this.particleMain.startColor = this.color.Evaluate(f);
 								return;
 							}
-							if (num != 3073)
+							if (num == 3073)
+							{
+								this.particleMain.startSize = this.curve.Evaluate(f);
+								return;
+							}
+							if (num != 3083)
 							{
 								return;
 							}
-							this.particleMain.startSize = this.curve.Evaluate(f);
-							return;
-						}
-					}
-					else if (num <= 3084)
-					{
-						if (num == 3083)
-						{
 							this.particleMain.startSpeed = this.ScaleCurve(in this.speedCurveCache, this.curve.Evaluate(f));
 							return;
 						}
-						if (num != 3084)
+					}
+					else if (num <= 4098)
+					{
+						if (num == 3084)
+						{
+							this.particleEmission.rateOverTime = this.ScaleCurve(in this.rateCurveCache, this.curve.Evaluate(f));
+							return;
+						}
+						if (num != 4098)
 						{
 							return;
 						}
-						this.particleEmission.rateOverTime = this.ScaleCurve(in this.rateCurveCache, this.curve.Evaluate(f));
+						((SkinnedMeshRenderer)this.target).SetBlendShapeWeight(this.intValue, this.curve.Evaluate(f) * 100f);
 						return;
 					}
 					else
 					{
-						if (num == 4098)
-						{
-							((SkinnedMeshRenderer)this.target).SetBlendShapeWeight(this.intValue, this.curve.Evaluate(f) * 100f);
-							return;
-						}
 						if (num == 5123)
 						{
 							((Animator)this.target).SetFloat(this.stringHash, this.curve.Evaluate(f));
 							return;
 						}
-						if (num != 5131)
+						if (num == 5131)
+						{
+							((Animator)this.target).speed = this.curve.Evaluate(f);
+							return;
+						}
+						if (num != 6157)
 						{
 							return;
 						}
-						((Animator)this.target).speed = this.curve.Evaluate(f);
+						((AudioSource)this.target).volume = Mathf.Clamp01(this.curve.Evaluate(f));
 						return;
 					}
 				}
 				else if (num <= 1051663)
 				{
-					if (num <= 6158)
+					if (num <= 7173)
 					{
-						if (num == 6157)
+						if (num == 6158)
 						{
-							((AudioSource)this.target).volume = Mathf.Clamp01(this.curve.Evaluate(f));
+							((AudioSource)this.target).pitch = Mathf.Clamp(this.curve.Evaluate(f), -3f, 3f);
 							return;
 						}
-						if (num != 6158)
-						{
-							return;
-						}
-						((AudioSource)this.target).pitch = Mathf.Clamp(this.curve.Evaluate(f), -3f, 3f);
-						return;
-					}
-					else
-					{
 						switch (num)
 						{
 						case 7171:
@@ -727,117 +729,113 @@ namespace GorillaTag.Cosmetics
 							mpb.SetColor(this.stringHash, this.color.Evaluate(f));
 							return;
 						default:
-							if (num != 1049617)
-							{
-								if (num != 1051663)
-								{
-									return;
-								}
-								((ParticleSystem)this.target).Play();
-								return;
-							}
-							break;
-						}
-					}
-				}
-				else if (num <= 1053714)
-				{
-					if (num == 1053706)
-					{
-						goto IL_0638;
-					}
-					if (num != 1053714)
-					{
-						return;
-					}
-					((Animator)this.target).SetTrigger(this.stringHash);
-					return;
-				}
-				else
-				{
-					if (num == 1054735)
-					{
-						((AudioSource)this.target).Play();
-						return;
-					}
-					if (num == 1055760)
-					{
-						goto IL_0753;
-					}
-					if (num != 1056784)
-					{
-						return;
-					}
-					goto IL_076A;
-				}
-				this.unityEvent.Invoke(this.curve.Evaluate(f));
-				return;
-			}
-			if (num <= 3146769)
-			{
-				if (num <= 2102290)
-				{
-					if (num <= 2098193)
-					{
-						if (num != 1057808)
-						{
 							return;
 						}
 					}
 					else
 					{
-						if (num == 2100239)
+						if (num == 11278)
 						{
-							((ParticleSystem)this.target).Stop(true, this.stopType);
+							((VoicePitchShiftCosmetic)this.target).Pitch = this.curve.Evaluate(f);
 							return;
 						}
-						if (num != 2102282)
+						if (num == 1049617)
+						{
+							this.unityEvent.Invoke(this.curve.Evaluate(f));
+							return;
+						}
+						if (num != 1051663)
 						{
 							return;
 						}
-						goto IL_0638;
+						((ParticleSystem)this.target).Play();
+						return;
 					}
 				}
-				else if (num <= 2104336)
+				else if (num <= 1054735)
 				{
-					if (num == 2103311)
+					if (num != 1053706)
 					{
-						((AudioSource)this.target).Stop();
+						if (num == 1053714)
+						{
+							((Animator)this.target).SetTrigger(this.stringHash);
+							return;
+						}
+						if (num != 1054735)
+						{
+							return;
+						}
+						((AudioSource)this.target).Play();
 						return;
 					}
-					if (num != 2104336)
-					{
-						return;
-					}
-					goto IL_0753;
 				}
 				else
 				{
+					if (num == 1055760)
+					{
+						goto IL_079A;
+					}
+					if (num == 1056784)
+					{
+						goto IL_07B1;
+					}
+					if (num != 1057808)
+					{
+						return;
+					}
+					goto IL_07C8;
+				}
+			}
+			else if (num <= 3150858)
+			{
+				if (num <= 2103311)
+				{
+					if (num <= 2100239)
+					{
+						if (num == 2098193)
+						{
+							return;
+						}
+						if (num != 2100239)
+						{
+							return;
+						}
+						((ParticleSystem)this.target).Stop(true, this.stopType);
+						return;
+					}
+					else if (num != 2102282)
+					{
+						if (num == 2102290)
+						{
+							return;
+						}
+						if (num != 2103311)
+						{
+							return;
+						}
+						((AudioSource)this.target).Stop();
+						return;
+					}
+				}
+				else if (num <= 2106384)
+				{
+					if (num == 2104336)
+					{
+						goto IL_079A;
+					}
 					if (num == 2105360)
 					{
-						goto IL_076A;
+						goto IL_07B1;
 					}
 					if (num != 2106384)
 					{
 						return;
 					}
-				}
-				((GameObject)this.target).SetActive(this.previousBoolValue);
-				return;
-			}
-			if (num <= 3152912)
-			{
-				if (num <= 3150858)
-				{
-					if (num != 3148815)
-					{
-						return;
-					}
-					return;
+					goto IL_07C8;
 				}
 				else
 				{
-					if (num != 3150866 && num != 3151887)
+					if (num != 3146769 && num != 3148815)
 					{
 						return;
 					}
@@ -846,14 +844,30 @@ namespace GorillaTag.Cosmetics
 			}
 			else if (num <= 3154960)
 			{
-				if (num != 3153936)
+				if (num <= 3151887)
 				{
+					if (num != 3150866)
+					{
+						return;
+					}
 					return;
 				}
-				return;
+				else
+				{
+					if (num != 3152912 && num != 3153936)
+					{
+						return;
+					}
+					return;
+				}
 			}
-			else
+			else if (num <= 8389649)
 			{
+				if (num == 4195345)
+				{
+					this.unityEvent.Invoke(this.curve.Evaluate(f));
+					return;
+				}
 				switch (num)
 				{
 				case 4196358:
@@ -869,27 +883,49 @@ namespace GorillaTag.Cosmetics
 					((Transform)this.target).localPosition = Vector3.Lerp(this.offsetA.pos, this.offsetB.pos, this.curve.Evaluate(f));
 					return;
 				default:
-					switch (num)
+				{
+					if (num != 8389649)
 					{
-					case 8390662:
-						((Transform)this.target).rotation = Quaternion.LookRotation(this.bezierCurve.GetDirection(this.curve.Evaluate(f)));
 						return;
-					case 8390663:
-						((Transform)this.target).localRotation = Quaternion.Euler(0f, this.curve.Evaluate(f) * 360f, 0f);
+					}
+					float num2 = this.curve.Evaluate(f);
+					float num3 = 1f / num2;
+					this.frequencyTimer += deltaTime;
+					if (this.frequencyTimer >= num3)
+					{
+						this.frequencyTimer = Mathf.Repeat(this.frequencyTimer - num3, num3);
+						this.unityEvent.Invoke(num2);
 						return;
-					case 8390664:
-						((Transform)this.target).rotation = Quaternion.Slerp(this.transformA.rotation, this.transformB.rotation, this.curve.Evaluate(f));
-						return;
-					case 8390665:
-						((Transform)this.target).localRotation = Quaternion.Slerp(this.offsetA.rot, this.offsetB.rot, this.curve.Evaluate(f));
-						return;
-					default:
+					}
+					return;
+				}
+				}
+			}
+			else
+			{
+				switch (num)
+				{
+				case 8390662:
+					((Transform)this.target).rotation = Quaternion.LookRotation(this.bezierCurve.GetDirection(this.curve.Evaluate(f)));
+					return;
+				case 8390663:
+					((Transform)this.target).localRotation = Quaternion.Euler(0f, this.curve.Evaluate(f) * 360f, 0f);
+					return;
+				case 8390664:
+					((Transform)this.target).rotation = Quaternion.Slerp(this.transformA.rotation, this.transformB.rotation, this.curve.Evaluate(f));
+					return;
+				case 8390665:
+					((Transform)this.target).localRotation = Quaternion.Slerp(this.offsetA.rot, this.offsetB.rot, this.curve.Evaluate(f));
+					return;
+				default:
+					if (num != 12583953)
+					{
 						switch (num)
 						{
 						case 12584966:
 						{
-							float num2 = this.curve.Evaluate(f);
-							((Transform)this.target).SetPositionAndRotation(this.bezierCurve.GetPoint(num2), Quaternion.LookRotation(this.bezierCurve.GetDirection(num2)));
+							float num4 = this.curve.Evaluate(f);
+							((Transform)this.target).SetPositionAndRotation(this.bezierCurve.GetPoint(num4), Quaternion.LookRotation(this.bezierCurve.GetDirection(num4)));
 							return;
 						}
 						case 12584967:
@@ -903,32 +939,44 @@ namespace GorillaTag.Cosmetics
 							Vector3 vector2;
 							Quaternion quaternion2;
 							this.transformB.GetPositionAndRotation(out vector2, out quaternion2);
-							float num3 = this.curve.Evaluate(f);
-							((Transform)this.target).SetPositionAndRotation(Vector3.Lerp(vector, vector2, num3), Quaternion.Slerp(quaternion, quaternion2, num3));
+							float num5 = this.curve.Evaluate(f);
+							((Transform)this.target).SetPositionAndRotation(Vector3.Lerp(vector, vector2, num5), Quaternion.Slerp(quaternion, quaternion2, num5));
 							return;
 						}
 						case 12584969:
 						{
-							float num4 = this.curve.Evaluate(f);
-							((Transform)this.target).SetLocalPositionAndRotation(Vector3.Lerp(this.offsetA.pos, this.offsetB.pos, num4), Quaternion.Slerp(this.offsetA.rot, this.offsetB.rot, num4));
+							float num6 = this.curve.Evaluate(f);
+							((Transform)this.target).SetLocalPositionAndRotation(Vector3.Lerp(this.offsetA.pos, this.offsetB.pos, num6), Quaternion.Slerp(this.offsetA.rot, this.offsetB.rot, num6));
 							return;
 						}
 						default:
 							return;
 						}
-						break;
+					}
+					else
+					{
+						float num7 = this.curve.Evaluate(f);
+						float num8 = 1f - Mathf.Exp(-num7 * deltaTime);
+						if (Random.value < num8)
+						{
+							this.unityEvent.Invoke(num7);
+							return;
+						}
+						return;
 					}
 					break;
 				}
 			}
-			IL_0638:
 			((Animator)this.target).SetBool(this.stringHash, this.previousBoolValue);
 			return;
-			IL_0753:
+			IL_079A:
 			((Renderer)this.target).enabled = this.previousBoolValue;
 			return;
-			IL_076A:
+			IL_07B1:
 			((Behaviour)this.target).enabled = this.previousBoolValue;
+			return;
+			IL_07C8:
+			((GameObject)this.target).SetActive(this.previousBoolValue);
 		}
 
 		private ParticleSystem.MinMaxCurve ScaleCurve(in ParticleSystem.MinMaxCurve inCurve, float scale)
@@ -949,6 +997,34 @@ namespace GorillaTag.Cosmetics
 				break;
 			}
 			return minMaxCurve;
+		}
+
+		private bool CheckContinuousEvent(float f, float deltaTime)
+		{
+			ContinuousProperty.EventMode eventMode = this.eventMode;
+			if (eventMode == ContinuousProperty.EventMode.Passthrough)
+			{
+				return true;
+			}
+			if (eventMode != ContinuousProperty.EventMode.Frequency)
+			{
+				if (eventMode != ContinuousProperty.EventMode.AveragePerSecond)
+				{
+					return false;
+				}
+				float num = 1f - Mathf.Exp(-f * deltaTime);
+				return Random.value < num;
+			}
+			else
+			{
+				this.frequencyTimer += deltaTime;
+				if (this.frequencyTimer < f)
+				{
+					return false;
+				}
+				this.frequencyTimer = Mathf.Repeat(this.frequencyTimer - f, f);
+				return true;
+			}
 		}
 
 		private ContinuousProperty.ThresholdResult CheckThreshold(float f)
@@ -977,10 +1053,6 @@ namespace GorillaTag.Cosmetics
 		[FormerlySerializedAs("component")]
 		[SerializeField]
 		protected Object target;
-
-		private static int linearCurveHash = AnimationCurves.Linear.GetHashCode();
-
-		private static int stepCurveHash = ContinuousProperty.StepCurve.GetHashCode();
 
 		[SerializeField]
 		private Gradient color;
@@ -1028,6 +1100,9 @@ namespace GorillaTag.Cosmetics
 		private ContinuousProperty.ThresholdOption thresholdOption = ContinuousProperty.ThresholdOption.Normal;
 
 		[SerializeField]
+		private ContinuousProperty.EventMode eventMode = ContinuousProperty.EventMode.Passthrough;
+
+		[SerializeField]
 		private UnityEvent<float> unityEvent;
 
 		private int internalSwitchValue;
@@ -1039,6 +1114,8 @@ namespace GorillaTag.Cosmetics
 		private ParticleSystem.MinMaxCurve speedCurveCache;
 
 		private ParticleSystem.MinMaxCurve rateCurveCache;
+
+		private float frequencyTimer;
 
 		private bool previousBoolValue;
 
@@ -1079,20 +1156,29 @@ namespace GorillaTag.Cosmetics
 			Renderer = 7168,
 			Behaviour = 8192,
 			GameObject = 9216,
-			Rigidbody = 10240
+			Rigidbody = 10240,
+			VoicePitchShiftCosmetic = 11264
 		}
 
 		[Flags]
 		public enum DataFlags
 		{
 			None = 0,
+			[Tooltip("Expose the AnimationCurve for single values")]
 			HasCurve = 1,
+			[Tooltip("Expose the Gradient for colors")]
 			HasColor = 2,
+			[Tooltip("Select which axis it should rotate on")]
 			HasAxis = 4,
+			[Tooltip("Expose the integer, usually for material index")]
 			HasInteger = 8,
+			[Tooltip("Select whether to use position, rotation, or both when interpolating")]
 			HasInterpolation = 16,
+			[Tooltip("Expose the string and hash it into a shader property ID")]
 			IsShaderProperty = 32,
+			[Tooltip("Expose the string and hash it into an animator parameter ID")]
 			IsAnimatorParameter = 64,
+			[Tooltip("Expose the threshold range as a dual slider")]
 			HasThreshold = 128
 		}
 
@@ -1122,6 +1208,13 @@ namespace GorillaTag.Cosmetics
 			Position = 4194304,
 			Rotation = 8388608,
 			PositionAndRotation = 12582912
+		}
+
+		public enum EventMode
+		{
+			Passthrough = 4194304,
+			Frequency = 8388608,
+			AveragePerSecond = 12582912
 		}
 	}
 }

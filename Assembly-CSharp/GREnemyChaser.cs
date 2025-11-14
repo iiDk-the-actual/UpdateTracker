@@ -88,9 +88,9 @@ public class GREnemyChaser : MonoBehaviour, IGameEntityComponent, IGameEntitySer
 		this.SetBodyState(GREnemyChaser.BodyState.Bones, true);
 	}
 
-	private void OnAgentJumpRequested(Vector3 start, Vector3 end)
+	private void OnAgentJumpRequested(Vector3 start, Vector3 end, float heightScale, float speedScale)
 	{
-		this.abilityJump.SetupJump(start, end);
+		this.abilityJump.SetupJump(start, end, heightScale, speedScale);
 		this.SetBehavior(GREnemyChaser.Behavior.Jump, false);
 	}
 
@@ -180,6 +180,7 @@ public class GREnemyChaser : MonoBehaviour, IGameEntityComponent, IGameEntitySer
 			break;
 		case GREnemyChaser.Behavior.Jump:
 			this.abilityJump.Stop();
+			this.lastJumpEndtime = Time.timeAsDouble;
 			break;
 		}
 		this.currBehavior = newBehavior;
@@ -285,18 +286,18 @@ public class GREnemyChaser : MonoBehaviour, IGameEntityComponent, IGameEntitySer
 		{
 		case GREnemyChaser.BodyState.Destroyed:
 			this.armor.SetHp(0);
-			GREnemyChaser.Hide(this.bones, false);
-			GREnemyChaser.Hide(this.always, false);
+			GREnemy.HideRenderers(this.bones, false);
+			GREnemy.HideRenderers(this.always, false);
 			return;
 		case GREnemyChaser.BodyState.Bones:
 			this.armor.SetHp(0);
-			GREnemyChaser.Hide(this.bones, false);
-			GREnemyChaser.Hide(this.always, false);
+			GREnemy.HideRenderers(this.bones, false);
+			GREnemy.HideRenderers(this.always, false);
 			return;
 		case GREnemyChaser.BodyState.Shell:
 			this.armor.SetHp(this.hp);
-			GREnemyChaser.Hide(this.bones, true);
-			GREnemyChaser.Hide(this.always, false);
+			GREnemy.HideRenderers(this.bones, true);
+			GREnemy.HideRenderers(this.always, false);
 			return;
 		default:
 			return;
@@ -339,6 +340,7 @@ public class GREnemyChaser : MonoBehaviour, IGameEntityComponent, IGameEntitySer
 				this.abilityChase.SetTargetPlayer(this.agent.targetPlayer);
 			}
 			this.abilityChase.Think(dt);
+			this.ChooseNewBehavior();
 			break;
 		case GREnemyChaser.Behavior.Search:
 			this.ChooseNewBehavior();
@@ -352,7 +354,28 @@ public class GREnemyChaser : MonoBehaviour, IGameEntityComponent, IGameEntitySer
 	{
 		if (!GhostReactorManager.AggroDisabled && this.senseNearby.IsAnyoneNearby())
 		{
-			this.SetBehavior(GREnemyChaser.Behavior.Chase, false);
+			if (this.agent.targetPlayer != null)
+			{
+				Vector3 position = GRPlayer.Get(this.agent.targetPlayer).transform.position;
+				Vector3 vector = position - base.transform.position;
+				float magnitude = vector.magnitude;
+				if (magnitude < this.attackRange)
+				{
+					this.SetBehavior(GREnemyChaser.Behavior.Attack, false);
+				}
+				else if (this.canChaseJump && Time.timeAsDouble - this.lastJumpEndtime > (double)this.chaseJumpMinInterval && magnitude > this.attackRange + this.minChaseJumpDistance && GRSenseLineOfSight.HasNavmeshLineOfSight(base.transform.position, position, 10f))
+				{
+					Vector3 vector2 = vector / magnitude;
+					float num = Mathf.Clamp(this.chaseJumpDistance, this.minChaseJumpDistance, magnitude - this.attackRange * 0.5f);
+					NavMeshHit navMeshHit;
+					if (NavMesh.SamplePosition(base.transform.position + vector2 * num, out navMeshHit, 0.5f, AbilityHelperFunctions.GetNavMeshWalkableArea()))
+					{
+						this.agent.GetGameAgentManager().RequestJump(this.agent, base.transform.position, navMeshHit.position, 0.25f, 1.5f);
+						return;
+					}
+				}
+			}
+			this.TrySetBehavior(GREnemyChaser.Behavior.Chase);
 			return;
 		}
 		this.investigateLocation = AbilityHelperFunctions.GetLocationToInvestigate(base.transform.position, this.hearingRadius, this.investigateLocation);
@@ -528,7 +551,6 @@ public class GREnemyChaser : MonoBehaviour, IGameEntityComponent, IGameEntitySer
 			}
 			return;
 		}
-		Debug.Log(string.Format("Chaser On Hit By Club dmg:{0} impulse:{1} size:{2}", hit.hitAmount, hit.hitImpulse, hit.hitImpulse.magnitude));
 		this.hp -= hit.hitAmount;
 		if (this.damagedSounds.Count > 0)
 		{
@@ -608,7 +630,7 @@ public class GREnemyChaser : MonoBehaviour, IGameEntityComponent, IGameEntitySer
 		{
 			this.abilityFlashed.SetStunTime(component.stunDuration);
 		}
-		this.SetBehavior(GREnemyChaser.Behavior.Flashed, false);
+		this.TrySetBehavior(GREnemyChaser.Behavior.Flashed);
 	}
 
 	public void OnHitByShield(GRTool tool, GameHitData hit)
@@ -673,21 +695,6 @@ public class GREnemyChaser : MonoBehaviour, IGameEntityComponent, IGameEntitySer
 			GhostReactorManager.Get(this.entity).RequestEnemyHitPlayer(GhostReactor.EnemyType.Chaser, this.entity.id, player, base.transform.position);
 		}
 		yield break;
-	}
-
-	public static void Hide(List<Renderer> renderers, bool hide)
-	{
-		if (renderers == null)
-		{
-			return;
-		}
-		for (int i = 0; i < renderers.Count; i++)
-		{
-			if (renderers[i] != null)
-			{
-				renderers[i].enabled = !hide;
-			}
-		}
 	}
 
 	public void GetDebugTextLines(out List<string> strings)
@@ -858,6 +865,16 @@ public class GREnemyChaser : MonoBehaviour, IGameEntityComponent, IGameEntitySer
 
 	[ReadOnly]
 	public double behaviorStartTime;
+
+	private double lastJumpEndtime;
+
+	public bool canChaseJump = true;
+
+	public float chaseJumpDistance = 5f;
+
+	public float chaseJumpMinInterval = 1f;
+
+	public float minChaseJumpDistance = 2f;
 
 	public static RaycastHit[] visibilityHits = new RaycastHit[16];
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using GorillaTagScripts.GhostReactor;
 using TMPro;
 using UnityEngine;
 
@@ -6,47 +7,33 @@ public class GRRecyclerScanner : MonoBehaviour
 {
 	private void Awake()
 	{
-		this.toolText.text = "";
-		this.ratesText.text = "";
+		this.titleText.text = "";
+		this.descriptionText.text = "";
+		this.annotationText.text = "";
+		this.recycleValueText.text = "";
 	}
 
-	public void ScanItem(GRTool.GRToolType toolType)
+	public void ScanItem(GameEntityId id)
 	{
-		int num = 0;
-		switch (toolType)
+		if (this.recycler != null && this.recycler.reactor != null && this.recycler.reactor.grManager != null && this.recycler.reactor.grManager.gameEntityManager != null)
 		{
-		case GRTool.GRToolType.Club:
-			num = this.recycler.GetRecycleValue(GRTool.GRToolType.Club);
-			break;
-		case GRTool.GRToolType.Collector:
-			num = this.recycler.GetRecycleValue(GRTool.GRToolType.Collector);
-			break;
-		case GRTool.GRToolType.Flash:
-			num = this.recycler.GetRecycleValue(GRTool.GRToolType.Flash);
-			break;
-		case GRTool.GRToolType.Lantern:
-			num = this.recycler.GetRecycleValue(GRTool.GRToolType.Lantern);
-			break;
-		case GRTool.GRToolType.Revive:
-			num = this.recycler.GetRecycleValue(GRTool.GRToolType.Revive);
-			break;
-		case GRTool.GRToolType.ShieldGun:
-			num = this.recycler.GetRecycleValue(GRTool.GRToolType.ShieldGun);
-			break;
-		case GRTool.GRToolType.DirectionalShield:
-			num = this.recycler.GetRecycleValue(GRTool.GRToolType.DirectionalShield);
-			break;
-		case GRTool.GRToolType.DockWrist:
-			num = this.recycler.GetRecycleValue(GRTool.GRToolType.DockWrist);
-			break;
-		case GRTool.GRToolType.HockeyStick:
-			num = this.recycler.GetRecycleValue(GRTool.GRToolType.HockeyStick);
-			break;
+			GameEntity gameEntity = this.recycler.reactor.grManager.gameEntityManager.GetGameEntity(id);
+			if (gameEntity == null)
+			{
+				return;
+			}
+			GRScannable component = gameEntity.GetComponent<GRScannable>();
+			if (component == null)
+			{
+				return;
+			}
+			this.titleText.text = component.GetTitleText(this.recycler.reactor);
+			this.descriptionText.text = component.GetBodyText(this.recycler.reactor);
+			this.annotationText.text = component.GetAnnotationText(this.recycler.reactor);
+			this.recycleValueText.text = string.Format("Recycle value: {0}", this.recycler.GetRecycleValue(gameEntity.gameObject.GetToolType()));
+			this.audioSource.volume = this.recyclerBarcodeAudioVolume;
+			this.audioSource.PlayOneShot(this.recyclerBarcodeAudio);
 		}
-		this.toolText.text = GRUtils.GetToolName(toolType);
-		this.ratesText.text = num.ToString("D2") ?? "";
-		this.audioSource.volume = this.recyclerBarcodeAudioVolume;
-		this.audioSource.PlayOneShot(this.recyclerBarcodeAudio);
 	}
 
 	private void OnTriggerEnter(Collider other)
@@ -59,54 +46,27 @@ public class GRRecyclerScanner : MonoBehaviour
 		{
 			return;
 		}
-		GRTool componentInParent = other.gameObject.GetComponentInParent<GRTool>();
+		GRScannable componentInParent = other.gameObject.GetComponentInParent<GRScannable>();
 		if (componentInParent == null)
 		{
 			return;
 		}
-		GRTool.GRToolType grtoolType = GRTool.GRToolType.None;
-		if (other.gameObject.GetComponentInParent<GRToolClub>() != null)
-		{
-			grtoolType = GRTool.GRToolType.Club;
-		}
-		else if (other.gameObject.GetComponentInParent<GRToolCollector>() != null)
-		{
-			grtoolType = GRTool.GRToolType.Collector;
-		}
-		else if (other.gameObject.GetComponentInParent<GRToolFlash>() != null)
-		{
-			grtoolType = GRTool.GRToolType.Flash;
-		}
-		else if (other.gameObject.GetComponentInParent<GRToolLantern>() != null)
-		{
-			grtoolType = GRTool.GRToolType.Lantern;
-		}
-		else if (other.gameObject.GetComponentInParent<GRToolRevive>() != null)
-		{
-			grtoolType = GRTool.GRToolType.Revive;
-		}
-		else if (other.gameObject.GetComponentInParent<GRToolShieldGun>() != null)
-		{
-			grtoolType = GRTool.GRToolType.ShieldGun;
-		}
-		else if (other.gameObject.GetComponentInParent<GRToolDirectionalShield>() != null)
-		{
-			grtoolType = GRTool.GRToolType.DirectionalShield;
-		}
-		else if (componentInParent.toolType == GRTool.GRToolType.HockeyStick || componentInParent.toolType == GRTool.GRToolType.DockWrist)
-		{
-			grtoolType = componentInParent.toolType;
-		}
-		this.recycler.reactor.grManager.RequestRecycleScanItem(grtoolType);
+		this.recycler.reactor.grManager.RequestRecycleScanItem(componentInParent.gameEntity.id);
 	}
 
 	public GRRecycler recycler;
 
 	[SerializeField]
-	private TextMeshPro toolText;
+	private TextMeshPro titleText;
 
 	[SerializeField]
-	private TextMeshPro ratesText;
+	private TextMeshPro descriptionText;
+
+	[SerializeField]
+	private TextMeshPro annotationText;
+
+	[SerializeField]
+	private TextMeshPro recycleValueText;
 
 	public AudioSource audioSource;
 

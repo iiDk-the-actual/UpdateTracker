@@ -6,6 +6,7 @@ public class SIAutoPressButtonOnAwake : MonoBehaviour
 	private void Awake()
 	{
 		this.button = base.GetComponent<SITouchscreenButton>();
+		this.terminalParent = this.button.GetComponentInParent<SICombinedTerminal>();
 	}
 
 	private void OnEnable()
@@ -24,9 +25,14 @@ public class SIAutoPressButtonOnAwake : MonoBehaviour
 		{
 			return;
 		}
-		this.button.PressButton();
+		if (this.terminalParent.activePlayer.ActorNr == SIPlayer.LocalPlayer.ActorNr)
+		{
+			this.button.PressButton();
+		}
 		this.buttonPressed = true;
 	}
+
+	private SICombinedTerminal terminalParent;
 
 	private SITouchscreenButton button;
 

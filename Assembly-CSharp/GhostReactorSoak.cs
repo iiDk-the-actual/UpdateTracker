@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using GorillaNetworking;
+using GorillaTagScripts.GhostReactor.SoakTasks;
 using Photon.Pun;
 using UnityEngine;
 
@@ -18,6 +20,10 @@ public class GhostReactorSoak
 				PhotonNetwork.InRoom
 			});
 		}
+		this._soakTasks.Add(new SoakTaskGrabThrow(grPlayer));
+		this._soakTasks.Add(new SoakTaskDepositCollectibles(grPlayer));
+		this._soakTasks.Add(new SoakTaskBreakable(grPlayer));
+		this._soakTasks.Add(new SoakTaskHitEnemy(grPlayer));
 	}
 
 	public bool IsSoaking()
@@ -131,6 +137,26 @@ public class GhostReactorSoak
 
 	private void UpdateActive()
 	{
+		if (this._activeTask != null)
+		{
+			bool flag = false;
+			if (!this._activeTask.Update())
+			{
+				Debug.LogError(string.Format("Failed to execute soak task of type {0}", this._activeTask.GetType()));
+				flag = true;
+			}
+			if (flag || this._activeTask.Complete)
+			{
+				this._activeTask.Reset();
+				this._activeTask = null;
+				return;
+			}
+		}
+		else if (Random.value <= 0.005f)
+		{
+			int num = Random.Range(0, this._soakTasks.Count);
+			this._activeTask = this._soakTasks[num];
+		}
 	}
 
 	public static GhostReactorSoak instance;
@@ -156,6 +182,12 @@ public class GhostReactorSoak
 	public double reconnectTime;
 
 	public double disconnectTime;
+
+	public const float START_NEW_TASK_ODDS = 0.005f;
+
+	private IGhostReactorSoakTask _activeTask;
+
+	private readonly List<IGhostReactorSoakTask> _soakTasks = new List<IGhostReactorSoakTask>();
 
 	public enum State
 	{

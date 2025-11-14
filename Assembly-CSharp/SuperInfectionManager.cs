@@ -13,9 +13,7 @@ public class SuperInfectionManager : MonoBehaviour, IGameEntityZoneComponent, IF
 	private void Awake()
 	{
 		GameEntityManager gameEntityManager = this.gameEntityManager;
-		gameEntityManager.OnEntityAdded = (Action<GameEntity>)Delegate.Combine(gameEntityManager.OnEntityAdded, new Action<GameEntity>(this.OnEntityAdded));
-		GameEntityManager gameEntityManager2 = this.gameEntityManager;
-		gameEntityManager2.OnEntityRemoved = (Action<GameEntity>)Delegate.Combine(gameEntityManager2.OnEntityRemoved, new Action<GameEntity>(this.OnEntityRemoved));
+		gameEntityManager.OnEntityRemoved = (Action<GameEntity>)Delegate.Combine(gameEntityManager.OnEntityRemoved, new Action<GameEntity>(this.OnEntityRemoved));
 	}
 
 	public void OnEnableZoneSuperInfection(SuperInfection zone)
@@ -179,7 +177,7 @@ public class SuperInfectionManager : MonoBehaviour, IGameEntityZoneComponent, IF
 
 	public bool IsZoneReady()
 	{
-		return NetworkSystem.Instance.InRoom && this.IsInSuperInfectionMode() && this.zoneSuperInfection.IsNotNull();
+		return NetworkSystem.Instance.InRoom && this.IsInSuperInfectionMode() && this.zoneSuperInfection.IsNotNull() && VRRig.LocalRig.zoneEntity.currentZone == this.gameEntityManager.zone;
 	}
 
 	public bool ShouldClearZone()
@@ -194,18 +192,22 @@ public class SuperInfectionManager : MonoBehaviour, IGameEntityZoneComponent, IF
 
 	public void OnCreateGameEntity(GameEntity entity)
 	{
-		SIPlayer siplayer = SIPlayer.Get((int)(entity.createData & (long)((ulong)(-1))));
-		if (siplayer != null)
-		{
-			siplayer.activePlayerGadgets.Add(entity.GetNetId());
-		}
 		SIGadget component = entity.GetComponent<SIGadget>();
 		if (component != null)
 		{
+			SIPlayer siplayer = SIPlayer.Get((int)(entity.createData & (long)((ulong)(-1))));
+			if (siplayer != null && !siplayer.activePlayerGadgets.Contains(entity.GetNetId()))
+			{
+				siplayer.activePlayerGadgets.Add(entity.GetNetId());
+			}
 			SIUpgradeSet siupgradeSet = new SIUpgradeSet((int)(entity.createData >> 32));
 			siupgradeSet = component.FilterUpgradeNodes(siupgradeSet);
 			component.ApplyUpgradeNodes(siupgradeSet);
 			component.RefreshUpgradeVisuals(siupgradeSet);
+			if (this.zoneSuperInfection != null)
+			{
+				this.zoneSuperInfection.AddGadget(component);
+			}
 		}
 		foreach (SuperInfectionSnapPoint superInfectionSnapPoint in entity.GetComponentsInChildren<SuperInfectionSnapPoint>(true))
 		{
@@ -900,22 +902,33 @@ public class SuperInfectionManager : MonoBehaviour, IGameEntityZoneComponent, IF
 		return this.techTreeSO.SpawnableEntities;
 	}
 
-	private void OnEntityAdded(GameEntity entity)
-	{
-		SIGadget sigadget;
-		if (this.zoneSuperInfection != null && entity.TryGetComponent<SIGadget>(out sigadget))
-		{
-			this.zoneSuperInfection.AddGadget(sigadget);
-		}
-	}
-
 	private void OnEntityRemoved(GameEntity entity)
 	{
 		SIGadget sigadget;
-		if (this.zoneSuperInfection != null && entity.TryGetComponent<SIGadget>(out sigadget))
+		entity.TryGetComponent<SIGadget>(out sigadget);
+		if (this.zoneSuperInfection != null && sigadget != null)
 		{
 			this.zoneSuperInfection.RemoveGadget(sigadget);
 		}
+		if (sigadget == null)
+		{
+			return;
+		}
+		SIPlayer siplayer = SIPlayer.Get((int)(entity.createData & (long)((ulong)(-1))));
+		if (siplayer != null && siplayer.activePlayerGadgets.Contains(entity.GetNetId()))
+		{
+			Debug.Log(string.Format("GadgetDebug: removing gadget grom list {0} {1}", siplayer.gameObject.name, entity.GetNetId()));
+			siplayer.activePlayerGadgets.Remove(entity.GetNetId());
+		}
+	}
+
+	public long ProcessMigratedGameEntityCreateData(GameEntity entity, long createData)
+	{
+		if (entity.GetComponent<SIGadget>() == null)
+		{
+			return createData;
+		}
+		return (createData >> 32 << 32) | (long)SIPlayer.LocalPlayer.ActorNr;
 	}
 
 	public bool ValidateMigratedGameEntity(int netId, int entityTypeId, Vector3 position, Quaternion rotation, long createData, int actorNr)
@@ -934,6 +947,11 @@ public class SuperInfectionManager : MonoBehaviour, IGameEntityZoneComponent, IF
 		{
 			return false;
 		}
+		SIPlayer siplayer2 = SIPlayer.Get((int)(createData & (long)((ulong)(-1))));
+		if (siplayer != siplayer2)
+		{
+			return false;
+		}
 		int num = 0;
 		for (int i = 0; i < siplayer.activePlayerGadgets.Count; i++)
 		{
@@ -943,7 +961,7 @@ public class SuperInfectionManager : MonoBehaviour, IGameEntityZoneComponent, IF
 				num++;
 			}
 		}
-		if (num >= siplayer.totalGadgetLimit)
+		if (num > siplayer.totalGadgetLimit)
 		{
 			return false;
 		}
@@ -966,6 +984,22 @@ public class SuperInfectionManager : MonoBehaviour, IGameEntityZoneComponent, IF
 			num2++;
 		}
 		return flag;
+	}
+
+	public void ClearPlayerGadgets(SIPlayer siPlayer)
+	{
+		for (int i = siPlayer.activePlayerGadgets.Count - 1; i >= 0; i--)
+		{
+			if (i < siPlayer.activePlayerGadgets.Count && siPlayer.activePlayerGadgets[i] >= 0)
+			{
+				GameEntity gameEntityFromNetId = this.gameEntityManager.GetGameEntityFromNetId(siPlayer.activePlayerGadgets[i]);
+				if (!(gameEntityFromNetId == null) && !(gameEntityFromNetId.id == GameEntityId.Invalid))
+				{
+					this.gameEntityManager.RequestDestroyItem(gameEntityFromNetId.id);
+				}
+			}
+		}
+		siPlayer.activePlayerGadgets.Clear();
 	}
 
 	[CompilerGenerated]

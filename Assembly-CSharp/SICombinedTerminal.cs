@@ -218,6 +218,12 @@ public class SICombinedTerminal : MonoBehaviour, IGorillaSliceableSimple
 		}
 	}
 
+	public void PlayWrongPlayerBuzz(Transform xForm)
+	{
+		this.wrongPlayerBuzz.transform.position = xForm.position;
+		this.wrongPlayerBuzz.PlayOneShot(this.wrongPlayerBuzz.clip);
+	}
+
 	[DebugReadout]
 	internal int index;
 
@@ -265,6 +271,8 @@ public class SICombinedTerminal : MonoBehaviour, IGorillaSliceableSimple
 	public Transform onePointTwoText;
 
 	private List<VRRig> rigs = new List<VRRig>();
+
+	public AudioSource wrongPlayerBuzz;
 
 	public enum TerminalSubFunction
 	{

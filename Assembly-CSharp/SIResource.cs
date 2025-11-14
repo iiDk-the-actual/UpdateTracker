@@ -85,9 +85,9 @@ public class SIResource : MonoBehaviour
 		this.timeReleased = Time.time;
 	}
 
-	public virtual bool CanDeposit(SIPlayer depositingPlayer)
+	public virtual bool CanDeposit()
 	{
-		return this.lastPlayerHeld.gamePlayer.IsLocal() && !this.localDeposited && SIPlayer.LocalPlayer.CanLimitedResourceBeDeposited(this.limitedDepositType);
+		return this.lastPlayerHeld != null && this.lastPlayerHeld.gamePlayer.IsLocal() && !this.localDeposited && SIPlayer.LocalPlayer.CanLimitedResourceBeDeposited(this.limitedDepositType);
 	}
 
 	public virtual void HandleDepositLocal(SIPlayer depositingPlayer)
@@ -138,11 +138,14 @@ public class SIResource : MonoBehaviour
 		{
 			return list;
 		}
-		for (int i = 0; i < costs.Length; i++)
+		foreach (IList<SIResource.ResourceCost> list2 in costs)
 		{
-			foreach (SIResource.ResourceCost resourceCost in costs[i])
+			if (list2 != null)
 			{
-				list.AddResourceCost(resourceCost);
+				foreach (SIResource.ResourceCost resourceCost in list2)
+				{
+					list.AddResourceCost(resourceCost);
+				}
 			}
 		}
 		return list;

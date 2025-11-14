@@ -49,129 +49,65 @@ namespace GorillaNetworking
 		{
 			successCallback = this.DebugWrapCb<ExecuteFunctionResult>(successCallback, "ReturnCurrentVersion result");
 			errorCallback = this.DebugWrapCb<PlayFabError>(errorCallback, "ReturnCurrentVersion error");
-			if (this.featureFlags.IsEnabledForUser("2024-05-ReturnCurrentVersionV2"))
+			Debug.Log("GorillaServer: ReturnCurrentVersion V2 call");
+			PlayFabCloudScriptAPI.ExecuteFunction(new ExecuteFunctionRequest
 			{
-				Debug.Log("GorillaServer: ReturnCurrentVersion V2 call");
-				PlayFabCloudScriptAPI.ExecuteFunction(new ExecuteFunctionRequest
-				{
-					Entity = this.playerEntity,
-					FunctionName = "ReturnCurrentVersionV2",
-					FunctionParameter = request
-				}, successCallback, errorCallback, null, null);
-				return;
-			}
-			Debug.Log("GorillaServer: ReturnCurrentVersion LEGACY call");
-			PlayFabClientAPI.ExecuteCloudScript(new ExecuteCloudScriptRequest
-			{
-				FunctionName = "ReturnCurrentVersionNew",
+				Entity = this.playerEntity,
+				FunctionName = "ReturnCurrentVersionV2",
 				FunctionParameter = request
-			}, delegate(global::PlayFab.ClientModels.ExecuteCloudScriptResult result)
-			{
-				successCallback(this.toFunctionResult(result));
-			}, errorCallback, null, null);
+			}, successCallback, errorCallback, null, null);
 		}
 
 		public void ReturnMyOculusHash(Action<ExecuteFunctionResult> successCallback, Action<PlayFabError> errorCallback)
 		{
 			successCallback = this.DebugWrapCb<ExecuteFunctionResult>(successCallback, "ReturnMyOculusHash result");
 			errorCallback = this.DebugWrapCb<PlayFabError>(errorCallback, "ReturnMyOculusHash error");
-			if (this.featureFlags.IsEnabledForUser("2024-05-ReturnMyOculusHashV2"))
+			Debug.Log("GorillaServer: ReturnMyOculusHash V2 call");
+			PlayFabCloudScriptAPI.ExecuteFunction(new ExecuteFunctionRequest
 			{
-				Debug.Log("GorillaServer: ReturnMyOculusHash V2 call");
-				PlayFabCloudScriptAPI.ExecuteFunction(new ExecuteFunctionRequest
-				{
-					Entity = this.playerEntity,
-					FunctionName = "ReturnMyOculusHashV2",
-					FunctionParameter = new { }
-				}, successCallback, errorCallback, null, null);
-				return;
-			}
-			Debug.Log("GorillaServer: ReturnMyOculusHash LEGACY call");
-			PlayFabClientAPI.ExecuteCloudScript(new ExecuteCloudScriptRequest
-			{
-				FunctionName = "ReturnMyOculusHash"
-			}, delegate(global::PlayFab.ClientModels.ExecuteCloudScriptResult result)
-			{
-				successCallback(this.toFunctionResult(result));
-			}, errorCallback, null, null);
+				Entity = this.playerEntity,
+				FunctionName = "ReturnMyOculusHashV2",
+				FunctionParameter = new { }
+			}, successCallback, errorCallback, null, null);
 		}
 
 		public void TryDistributeCurrency(Action<ExecuteFunctionResult> successCallback, Action<PlayFabError> errorCallback)
 		{
 			successCallback = this.DebugWrapCb<ExecuteFunctionResult>(successCallback, "TryDistributeCurrency result");
 			errorCallback = this.DebugWrapCb<PlayFabError>(errorCallback, "TryDistributeCurrency error");
-			if (this.featureFlags.IsEnabledForUser("2024-05-TryDistributeCurrencyV2"))
+			Debug.Log("GorillaServer: TryDistributeCurrency V2 call");
+			PlayFabCloudScriptAPI.ExecuteFunction(new ExecuteFunctionRequest
 			{
-				Debug.Log("GorillaServer: TryDistributeCurrency V2 call");
-				PlayFabCloudScriptAPI.ExecuteFunction(new ExecuteFunctionRequest
-				{
-					Entity = this.playerEntity,
-					FunctionName = "TryDistributeCurrencyV2",
-					FunctionParameter = new { }
-				}, successCallback, errorCallback, null, null);
-				return;
-			}
-			Debug.Log("GorillaServer: TryDistributeCurrency LEGACY call");
-			PlayFabClientAPI.ExecuteCloudScript(new ExecuteCloudScriptRequest
-			{
-				FunctionName = "TryDistributeCurrency",
+				Entity = this.playerEntity,
+				FunctionName = "TryDistributeCurrencyV2",
 				FunctionParameter = new { }
-			}, delegate(global::PlayFab.ClientModels.ExecuteCloudScriptResult result)
-			{
-				successCallback(this.toFunctionResult(result));
-			}, errorCallback, null, null);
+			}, successCallback, errorCallback, null, null);
 		}
 
 		public void AddOrRemoveDLCOwnership(Action<ExecuteFunctionResult> successCallback, Action<PlayFabError> errorCallback)
 		{
 			successCallback = this.DebugWrapCb<ExecuteFunctionResult>(successCallback, "AddOrRemoveDLCOwnership result");
 			errorCallback = this.DebugWrapCb<PlayFabError>(errorCallback, "AddOrRemoveDLCOwnership error");
-			if (this.featureFlags.IsEnabledForUser("2024-05-AddOrRemoveDLCOwnershipV2"))
+			Debug.Log("GorillaServer: AddOrRemoveDLCOwnership V2 call");
+			PlayFabCloudScriptAPI.ExecuteFunction(new ExecuteFunctionRequest
 			{
-				Debug.Log("GorillaServer: AddOrRemoveDLCOwnership V2 call");
-				PlayFabCloudScriptAPI.ExecuteFunction(new ExecuteFunctionRequest
-				{
-					Entity = this.playerEntity,
-					FunctionName = "AddOrRemoveDLCOwnershipV2",
-					FunctionParameter = new { }
-				}, successCallback, errorCallback, null, null);
-				return;
-			}
-			Debug.Log("GorillaServer: AddOrRemoveDLCOwnership LEGACY call");
-			PlayFabClientAPI.ExecuteCloudScript(new ExecuteCloudScriptRequest
-			{
-				FunctionName = "AddOrRemoveDLCOwnership",
+				Entity = this.playerEntity,
+				FunctionName = "AddOrRemoveDLCOwnershipV2",
 				FunctionParameter = new { }
-			}, delegate(global::PlayFab.ClientModels.ExecuteCloudScriptResult result)
-			{
-				successCallback(this.toFunctionResult(result));
-			}, errorCallback, null, null);
+			}, successCallback, errorCallback, null, null);
 		}
 
 		public void BroadcastMyRoom(BroadcastMyRoomRequest request, Action<ExecuteFunctionResult> successCallback, Action<PlayFabError> errorCallback)
 		{
 			successCallback = this.DebugWrapCb<ExecuteFunctionResult>(successCallback, "BroadcastMyRoom result");
 			errorCallback = this.DebugWrapCb<PlayFabError>(errorCallback, "BroadcastMyRoom error");
-			if (this.featureFlags.IsEnabledForUser("2024-05-BroadcastMyRoomV2"))
+			Debug.Log(string.Format("GorillaServer: BroadcastMyRoom V2 call ({0})", request));
+			PlayFabCloudScriptAPI.ExecuteFunction(new ExecuteFunctionRequest
 			{
-				Debug.Log(string.Format("GorillaServer: BroadcastMyRoom V2 call ({0})", request));
-				PlayFabCloudScriptAPI.ExecuteFunction(new ExecuteFunctionRequest
-				{
-					Entity = this.playerEntity,
-					FunctionName = "BroadcastMyRoomV2",
-					FunctionParameter = request
-				}, successCallback, errorCallback, null, null);
-				return;
-			}
-			Debug.Log(string.Format("GorillaServer: BroadcastMyRoom LEGACY call ({0})", request));
-			PlayFabClientAPI.ExecuteCloudScript(new ExecuteCloudScriptRequest
-			{
-				FunctionName = "BroadcastMyRoom",
+				Entity = this.playerEntity,
+				FunctionName = "BroadcastMyRoomV2",
 				FunctionParameter = request
-			}, delegate(global::PlayFab.ClientModels.ExecuteCloudScriptResult result)
-			{
-				successCallback(this.toFunctionResult(result));
-			}, errorCallback, null, null);
+			}, successCallback, errorCallback, null, null);
 		}
 
 		public bool NewCosmeticsPath()
@@ -284,7 +220,8 @@ namespace GorillaNetworking
 				FunctionParameter = new
 				{
 					name = request.name,
-					forRoom = request.forRoom.ToString()
+					forRoom = request.forRoom.ToString(),
+					forTroop = request.forTroop.ToString()
 				},
 				GeneratePlayStreamEvent = new bool?(false)
 			}, successCallback, errorCallback, null, null);

@@ -27,9 +27,7 @@ public static class GorillaTelemetry
 		dictionary2["User"] = null;
 		dictionary2["EventType"] = null;
 		GorillaTelemetry.gNotifEventArgs = dictionary2;
-		GorillaTelemetry.LastZone = GTZone.none;
-		GorillaTelemetry.LastSubZone = GTSubZone.none;
-		GorillaTelemetry.LastZoneEventType = GTZoneEventType.none;
+		GorillaTelemetry.nextStayTimestamp = 0f;
 		Dictionary<string, object> dictionary3 = new Dictionary<string, object>();
 		dictionary3["User"] = null;
 		dictionary3["EventType"] = null;
@@ -292,6 +290,11 @@ public static class GorillaTelemetry
 		{
 			return;
 		}
+		if (GorillaTelemetry.telemetryEventsQueueMothership.Count > 100)
+		{
+			Debug.LogError("[Telemetry] Too many telemetry events!  Not enqueueing " + eventName + ": " + content.ToJson(true));
+			return;
+		}
 		GorillaTelemetry.telemetryEventsQueueMothership.Enqueue(new MothershipAnalyticsEvent
 		{
 			event_name = eventName,
@@ -507,13 +510,14 @@ public static class GorillaTelemetry
 		return text;
 	}
 
-	public static void EnqueueZoneEvent(GTZone zone, GTSubZone subZone, GTZoneEventType zoneEvent)
+	public static void EnqueueZoneEvent(ZoneDef zone, GTZoneEventType zoneEventType)
 	{
-		if (!GorillaTelemetry.IsConnected())
+		if (zoneEventType == GTZoneEventType.zone_stay && Time.realtimeSinceStartup < GorillaTelemetry.nextStayTimestamp)
 		{
 			return;
 		}
-		if (zone == GorillaTelemetry.LastZone && subZone == GorillaTelemetry.LastSubZone && zoneEvent == GorillaTelemetry.LastZoneEventType)
+		GorillaTelemetry.nextStayTimestamp = Time.realtimeSinceStartup + (float)zone.trackStayIntervalSec;
+		if (!GorillaTelemetry.IsConnected())
 		{
 			return;
 		}
@@ -522,9 +526,9 @@ public static class GorillaTelemetry
 			return;
 		}
 		string text = GorillaTelemetry.PlayFabUserId();
-		string name = zoneEvent.GetName<GTZoneEventType>();
-		string name2 = zone.GetName<GTZone>();
-		string name3 = subZone.GetName<GTSubZone>();
+		string name = zoneEventType.GetName<GTZoneEventType>();
+		string name2 = zone.zoneId.GetName<GTZone>();
+		string name3 = zone.subZoneId.GetName<GTSubZone>();
 		bool sessionIsPrivate = NetworkSystem.Instance.SessionIsPrivate;
 		Dictionary<string, object> dictionary = GorillaTelemetry.gZoneEventArgs;
 		dictionary["User"] = text;
@@ -1748,7 +1752,7 @@ public static class GorillaTelemetry
 		Dictionary<string, object> dictionary2 = new Dictionary<string, object>();
 		Dictionary<string, object> dictionary3 = new Dictionary<string, object>();
 		Dictionary<string, object> dictionary4 = new Dictionary<string, object>();
-		for (int l = 0; l < 6; l++)
+		for (int l = 0; l < 11; l++)
 		{
 			SITechTreePageId sitechTreePageId = (SITechTreePageId)l;
 			float num2;
@@ -2095,11 +2099,7 @@ public static class GorillaTelemetry
 
 	private static readonly Dictionary<string, object> gNotifEventArgs;
 
-	public static GTZone LastZone;
-
-	public static GTSubZone LastSubZone;
-
-	public static GTZoneEventType LastZoneEventType;
+	public static float nextStayTimestamp;
 
 	private static readonly Dictionary<string, object> gGameModeStartEventArgs;
 

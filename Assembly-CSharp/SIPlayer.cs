@@ -37,12 +37,14 @@ public class SIPlayer : MonoBehaviour
 
 	private void Awake()
 	{
+		this.activePlayerGadgets = new List<int>();
 		SIPlayer.progressionSO = this.progressionSORef;
 		this.clientToAuthorityRPCLimiter = new CallLimiter(25, 1f, 0.5f);
 		this.clientToClientRPCLimiter = new CallLimiter(25, 1f, 0.5f);
 		this.authorityToClientRPCLimiter = new CallLimiter(25, 1f, 0.5f);
-		this.activePlayerGadgets = new List<int>();
 		this.currentProgression = new SIPlayer.ProgressionData(true);
+		GamePlayer gamePlayer = this.gamePlayer;
+		gamePlayer.OnPlayerLeftZone = (Action)Delegate.Combine(gamePlayer.OnPlayerLeftZone, new Action(this.ClearGadgetsOnLeaveZone));
 	}
 
 	private void OnDisable()
@@ -61,7 +63,6 @@ public class SIPlayer : MonoBehaviour
 			SIProgression.StaticSaveQuestProgress();
 			SIProgression.StaticClearAllQuestEventListeners();
 		}
-		this.activePlayerGadgets.Clear();
 		this.lastQuestsAvailableToClaim = 999;
 		this.tpParticleSystem.Stop();
 		this.netInitialized = false;
@@ -69,25 +70,10 @@ public class SIPlayer : MonoBehaviour
 
 	public void WriteDataPUN(PhotonStream stream, PhotonMessageInfo info)
 	{
-		stream.SendNext(this.activePlayerGadgets.Count);
-		for (int i = 0; i < this.activePlayerGadgets.Count; i++)
-		{
-			stream.SendNext(this.activePlayerGadgets[i]);
-		}
 	}
 
 	public bool ReadDataPUN(PhotonStream stream, PhotonMessageInfo info)
 	{
-		int num = (int)stream.ReceiveNext();
-		if (num > 20)
-		{
-			return false;
-		}
-		this.activePlayerGadgets.Clear();
-		for (int i = 0; i < num; i++)
-		{
-			this.activePlayerGadgets.Add((int)stream.ReceiveNext());
-		}
 		return true;
 	}
 
@@ -304,7 +290,10 @@ public class SIPlayer : MonoBehaviour
 		{
 			this.BonusProgressCelebrate();
 		}
-		if (((num > 0 || this.currentProgression.bonusProgress >= 10) && this.currentProgression.resourceArray[0] < newProgression.resourceArray[0]) || (this.currentProgression.limitedDepositTimeArray[1] == 0 && newProgression.limitedDepositTimeArray[1] == 1))
+		bool flag = num > 0 && this.currentProgression.stashedQuests > newProgression.stashedQuests;
+		bool flag2 = this.currentProgression.bonusProgress >= 10 && this.currentProgression.stashedBonusPoints > newProgression.stashedBonusPoints;
+		bool flag3 = this.currentProgression.limitedDepositTimeArray[1] == 0 && newProgression.limitedDepositTimeArray[1] == 1;
+		if ((flag || flag2 || flag3) && this.currentProgression.resourceArray[0] < newProgression.resourceArray[0])
 		{
 			this.TechPointGrantedCelebrate();
 		}
@@ -493,7 +482,7 @@ public class SIPlayer : MonoBehaviour
 
 	public void UpdateVisualsForAvailableQuestRedemption()
 	{
-		bool flag = NetworkSystem.Instance.InRoom && (this.QuestsAvailableToClaim() > 0 || this.currentProgression.bonusProgress >= 10);
+		bool flag = SuperInfectionManager.activeSuperInfectionManager != null && SuperInfectionManager.activeSuperInfectionManager.IsZoneReady() && (this.QuestsAvailableToClaim() > 0 || (this.currentProgression.bonusProgress >= 10 && this.currentProgression.stashedBonusPoints > 0));
 		if (this.tpParticleSystem.isPlaying && !flag)
 		{
 			this.tpParticleSystem.Stop();
@@ -535,6 +524,15 @@ public class SIPlayer : MonoBehaviour
 		this.monkeIdolDepositCelebrate.SetActive(true);
 	}
 
+	public void ClearGadgetsOnLeaveZone()
+	{
+		if (!SuperInfectionManager.activeSuperInfectionManager.gameEntityManager.IsAuthority())
+		{
+			return;
+		}
+		SuperInfectionManager.activeSuperInfectionManager.ClearPlayerGadgets(this);
+	}
+
 	private const string preLog = "[SIPlayer]  ";
 
 	private const string preErr = "[SIPlayer]  ERROR!!!  ";
@@ -573,7 +571,7 @@ public class SIPlayer : MonoBehaviour
 
 	private SIPlayer.ProgressionData currentProgression;
 
-	public List<int> activePlayerGadgets;
+	public List<int> activePlayerGadgets = new List<int>();
 
 	[Serializable]
 	public struct ProgressionData

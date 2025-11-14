@@ -7,6 +7,7 @@ using Photon.Pun;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Serialization;
 using UnityEngine.XR;
 
 public class TransferrableObject : HoldableObject, ISelfValidator, IRequestableOwnershipGuardCallbacks, IPreDisable, ISpawnable, IBuildValidation
@@ -1105,6 +1106,24 @@ public class TransferrableObject : HoldableObject, ISelfValidator, IRequestableO
 			this.UpdateFollowXform();
 		}
 		IL_015A:
+		if (this.InHand() && !this.wasHeldShared)
+		{
+			UnityEvent onHeldShared = this.OnHeldShared;
+			if (onHeldShared != null)
+			{
+				onHeldShared.Invoke();
+			}
+			this.wasHeldShared = true;
+		}
+		else if (!this.InHand() && !this.Dropped() && this.wasHeldShared)
+		{
+			UnityEvent onDockedShared = this.OnDockedShared;
+			if (onDockedShared != null)
+			{
+				onDockedShared.Invoke();
+			}
+			this.wasHeldShared = false;
+		}
 		if (!this.isRigidbodySet)
 		{
 			return;
@@ -1392,6 +1411,25 @@ public class TransferrableObject : HoldableObject, ISelfValidator, IRequestableO
 			}
 		}
 		this.HandleLocalInput();
+		if (this.InHand() && !this.wasHeldLocal)
+		{
+			UnityEvent onHeldLocal = this.OnHeldLocal;
+			if (onHeldLocal != null)
+			{
+				onHeldLocal.Invoke();
+			}
+			this.wasHeldLocal = true;
+			return;
+		}
+		if (!this.InHand() && !this.Dropped() && this.wasHeldLocal)
+		{
+			UnityEvent onDockedLocal = this.OnDockedLocal;
+			if (onDockedLocal != null)
+			{
+				onDockedLocal.Invoke();
+			}
+			this.wasHeldLocal = false;
+		}
 	}
 
 	protected void LateUpdateReplicatedSceneObject()
@@ -1550,11 +1588,6 @@ public class TransferrableObject : HoldableObject, ISelfValidator, IRequestableO
 			}
 			EquipmentInteractor.instance.UpdateHandEquipment(this, true);
 			GorillaTagger.Instance.StartVibration(true, GorillaTagger.Instance.tapHapticStrength / 8f, GorillaTagger.Instance.tapHapticDuration * 0.5f);
-			UnityEvent onUndocked = this.OnUndocked;
-			if (onUndocked != null)
-			{
-				onUndocked.Invoke();
-			}
 		}
 		else if (grabbingHand == EquipmentInteractor.instance.rightHand && this.currentState != TransferrableObject.PositionState.OnRightArm)
 		{
@@ -1575,11 +1608,6 @@ public class TransferrableObject : HoldableObject, ISelfValidator, IRequestableO
 			}
 			EquipmentInteractor.instance.UpdateHandEquipment(this, false);
 			GorillaTagger.Instance.StartVibration(false, GorillaTagger.Instance.tapHapticStrength / 8f, GorillaTagger.Instance.tapHapticDuration * 0.5f);
-			UnityEvent onUndocked2 = this.OnUndocked;
-			if (onUndocked2 != null)
-			{
-				onUndocked2.Invoke();
-			}
 		}
 		if (this.rigidbodyInstance && !this.rigidbodyInstance.isKinematic && this.ShouldBeKinematic())
 		{
@@ -1676,11 +1704,6 @@ public class TransferrableObject : HoldableObject, ISelfValidator, IRequestableO
 		else
 		{
 			bool flag4 = this.allowWorldSharableInstance;
-		}
-		UnityEvent onDocked = this.OnDocked;
-		if (onDocked != null)
-		{
-			onDocked.Invoke();
 		}
 		this.DropItemCleanup();
 		EquipmentInteractor.instance.ForceDropEquipment(this);
@@ -2543,11 +2566,24 @@ public class TransferrableObject : HoldableObject, ISelfValidator, IRequestableO
 	[SerializeField]
 	protected UnityEvent<int> OnItemStateIntChanged;
 
+	[FormerlySerializedAs("OnUndocked")]
 	[SerializeField]
-	private UnityEvent OnUndocked;
+	private UnityEvent OnHeldLocal;
 
 	[SerializeField]
-	private UnityEvent OnDocked;
+	private UnityEvent OnHeldShared;
+
+	[FormerlySerializedAs("OnDocked")]
+	[SerializeField]
+	private UnityEvent OnDockedLocal;
+
+	[FormerlySerializedAs("OnDockedLocal")]
+	[SerializeField]
+	private UnityEvent OnDockedShared;
+
+	private bool wasHeldLocal;
+
+	private bool wasHeldShared;
 
 	[Tooltip("(Optional) name broadcast by PlayerGameEvents")]
 	public string interactEventName;

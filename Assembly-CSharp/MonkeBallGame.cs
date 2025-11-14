@@ -403,7 +403,7 @@ public class MonkeBallGame : NetworkComponent, ITickSystemTick
 					{
 						Color color = this.team[playerTeams[i]].color;
 						rigContainer.Rig.InitializeNoobMaterialLocal(color.r, color.g, color.b);
-						rigContainer.Rig.LocalUpdateCosmeticsWithTryon(CosmeticsController.CosmeticSet.EmptySet, CosmeticsController.CosmeticSet.EmptySet);
+						rigContainer.Rig.LocalUpdateCosmeticsWithTryon(CosmeticsController.CosmeticSet.EmptySet, CosmeticsController.CosmeticSet.EmptySet, false);
 					}
 				}
 			}
@@ -662,6 +662,10 @@ public class MonkeBallGame : NetworkComponent, ITickSystemTick
 
 	public void RequestSetTeam(int teamId)
 	{
+		if (!ZoneManagement.IsInZone(GTZone.arena))
+		{
+			return;
+		}
 		this.photonView.RPC("RequestSetTeamRPC", RpcTarget.MasterClient, new object[] { teamId });
 		bool flag = false;
 		Color color = Color.white;
@@ -824,7 +828,7 @@ public class MonkeBallGame : NetworkComponent, ITickSystemTick
 				{
 					Color color = this.team[gamePlayer.teamId].color;
 					rigContainer.Rig.InitializeNoobMaterialLocal(color.r, color.g, color.b);
-					rigContainer.Rig.LocalUpdateCosmeticsWithTryon(CosmeticsController.CosmeticSet.EmptySet, CosmeticsController.CosmeticSet.EmptySet);
+					rigContainer.Rig.LocalUpdateCosmeticsWithTryon(CosmeticsController.CosmeticSet.EmptySet, CosmeticsController.CosmeticSet.EmptySet, false);
 				}
 			}
 		}

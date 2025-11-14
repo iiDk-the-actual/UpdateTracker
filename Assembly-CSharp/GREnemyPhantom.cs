@@ -86,13 +86,13 @@ public class GREnemyPhantom : MonoBehaviour, IGameEntityComponent, IGameEntitySe
 		{
 			this.negativeLight.gameObject.SetActive(false);
 		}
-		GREnemyPhantom.Hide(this.bones, false);
-		GREnemyPhantom.Hide(this.always, false);
+		GREnemy.HideRenderers(this.bones, false);
+		GREnemy.HideRenderers(this.always, false);
 	}
 
-	private void OnAgentJumpRequested(Vector3 start, Vector3 end)
+	private void OnAgentJumpRequested(Vector3 start, Vector3 end, float heightScale, float speedScale)
 	{
-		this.abilityJump.SetupJump(start, end);
+		this.abilityJump.SetupJump(start, end, heightScale, speedScale);
 		this.SetBehavior(GREnemyPhantom.Behavior.Jump, false);
 	}
 
@@ -508,21 +508,6 @@ public class GREnemyPhantom : MonoBehaviour, IGameEntityComponent, IGameEntitySe
 					hitPosition = component2.transform.position
 				};
 				component3.RequestHit(gameHitData);
-			}
-		}
-	}
-
-	public static void Hide(List<Renderer> renderers, bool hide)
-	{
-		if (renderers == null)
-		{
-			return;
-		}
-		for (int i = 0; i < renderers.Count; i++)
-		{
-			if (renderers[i] != null)
-			{
-				renderers[i].enabled = !hide;
 			}
 		}
 	}

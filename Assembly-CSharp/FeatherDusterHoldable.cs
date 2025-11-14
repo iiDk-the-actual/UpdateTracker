@@ -52,6 +52,7 @@ public class FeatherDusterHoldable : MonoBehaviour, IGorillaSliceableSimple
 
 	public SoundBankPlayer soundBankPlayer;
 
+	[SerializeField]
 	private float soundCooldown = 0.8f;
 
 	private ParticleSystem.EmissionModule emissionModule;

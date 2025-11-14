@@ -173,6 +173,7 @@ public class GameEntity : MonoBehaviour
 		this.manager = newManager;
 		GameEntityId gameEntityId = newManager.AddGameEntity(this);
 		this.id = gameEntityId;
+		this.manager.InitItemLocal(this, this.createData);
 		return gameEntityId;
 	}
 

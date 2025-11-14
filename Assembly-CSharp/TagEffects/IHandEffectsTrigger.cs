@@ -17,6 +17,8 @@ namespace TagEffects
 
 		Vector3 Velocity { get; }
 
+		Action<IHandEffectsTrigger.Mode> OnTrigger { get; set; }
+
 		bool RightHand { get; }
 
 		TagEffectPack CosmeticEffectPack { get; }

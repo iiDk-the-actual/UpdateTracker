@@ -68,14 +68,6 @@ public class GamePlayerLocal : MonoBehaviour
 		if (newEntityManager.IsAuthority())
 		{
 			this.gamePlayer.MigrateToEntityManager(newEntityManager);
-			if (this.currGameEntityManager != null && this.currGameEntityManager != newEntityManager && !this.currGameEntityManager.IsAuthority())
-			{
-				this.currGameEntityManager.photonView.RPC("PlayerLeftZoneRPC", this.currGameEntityManager.GetAuthorityPlayer(), Array.Empty<object>());
-			}
-		}
-		else if (this.currGameEntityManager != null && !this.currGameEntityManager.IsAuthority())
-		{
-			this.currGameEntityManager.photonView.RPC("PlayerLeftZoneRPC", this.currGameEntityManager.GetAuthorityPlayer(), Array.Empty<object>());
 		}
 		this.currGameEntityManager = newEntityManager;
 	}

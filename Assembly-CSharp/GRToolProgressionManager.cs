@@ -95,6 +95,7 @@ public class GRToolProgressionManager : MonoBehaviourTick
 		this.PopulateRevivePartMetadata();
 		this.PopulateDockWristPartMetadata();
 		this.PopulateDropPodPartMetadata();
+		this.PopulateHocketStickMetadata();
 	}
 
 	private void PopulateEmployeeLevelMetadata()
@@ -364,6 +365,20 @@ public class GRToolProgressionManager : MonoBehaviourTick
 			description = "Wearable storage that maximizes output per limb",
 			annotation = "Extra storage slot"
 		};
+		this.partMetadata[GRToolProgressionManager.ToolParts.StatusWatch] = new GRToolProgressionManager.ToolProgressionMetaData
+		{
+			shiftCreditCost = 200,
+			name = "Ecto Watch",
+			description = "Keep track of your location and statistics",
+			annotation = "Compass and stat tracker"
+		};
+		this.partMetadata[GRToolProgressionManager.ToolParts.RattyBackpack] = new GRToolProgressionManager.ToolProgressionMetaData
+		{
+			shiftCreditCost = 300,
+			name = "Ratty Backpack",
+			description = "Torn up backpack we found laying around. Can store one item.",
+			annotation = "Worn on the back. It's a backpack."
+		};
 	}
 
 	private void PopulateDropPodPartMetadata()
@@ -395,6 +410,17 @@ public class GRToolProgressionManager : MonoBehaviourTick
 			name = "Steel Pod Chassis",
 			description = "Upgrade your drop pod to support drops to 20000m",
 			annotation = "DropPodChassis3"
+		};
+	}
+
+	private void PopulateHocketStickMetadata()
+	{
+		this.partMetadata[GRToolProgressionManager.ToolParts.HockeyStick] = new GRToolProgressionManager.ToolProgressionMetaData
+		{
+			shiftCreditCost = 10,
+			name = "Hockey Stick",
+			description = "A Used Hockey Stick",
+			annotation = "Hit things with it?"
 		};
 	}
 
@@ -683,13 +709,6 @@ public class GRToolProgressionManager : MonoBehaviourTick
 		public int shiftCreditCost;
 	}
 
-	public struct ToolData
-	{
-		public GRToolProgressionTree.GRToolProgressionNode node;
-
-		public GRToolProgressionManager.ToolProgressionMetaData metaData;
-	}
-
 	public struct EmployeeMetadata
 	{
 		public string name;
@@ -733,6 +752,9 @@ public class GRToolProgressionManager : MonoBehaviourTick
 		DropPodBasic,
 		DropPodChassis1,
 		DropPodChassis2,
-		DropPodChassis3
+		DropPodChassis3,
+		StatusWatch,
+		RattyBackpack,
+		HockeyStick
 	}
 }

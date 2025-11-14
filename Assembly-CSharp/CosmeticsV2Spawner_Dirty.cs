@@ -635,7 +635,7 @@ public class CosmeticsV2Spawner_Dirty : IDelayedExecListener, ITickSystemTick
 		}
 		try
 		{
-			CosmeticsController.instance.UpdateWornCosmetics(false);
+			CosmeticsController.instance.UpdateWornCosmetics();
 		}
 		catch (Exception ex4)
 		{

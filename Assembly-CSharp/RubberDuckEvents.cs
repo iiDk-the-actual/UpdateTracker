@@ -25,8 +25,8 @@ public class RubberDuckEvents : MonoBehaviour
 		this.Dispose();
 		this.Activate = new PhotonEvent(string.Format("{0}.{1}", this.PlayerId, "Activate"));
 		this.Deactivate = new PhotonEvent(string.Format("{0}.{1}", this.PlayerId, "Deactivate"));
-		this.Activate.reliable = false;
-		this.Deactivate.reliable = false;
+		this.Activate.reliable = true;
+		this.Deactivate.reliable = true;
 	}
 
 	private void OnEnable()

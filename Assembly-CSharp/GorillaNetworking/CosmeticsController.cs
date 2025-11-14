@@ -1105,7 +1105,7 @@ namespace GorillaNetworking
 				this.UpdateShoppingCart();
 				this.ApplyCosmeticItemToSet(this.currentWornSet, itemFromDict, isLeftHand, true);
 				this.UpdateShoppingCart();
-				this.UpdateWornCosmetics(false);
+				this.UpdateWornCosmetics();
 				this.UpdateWardrobeModelsAndButtons();
 				Action onCosmeticsUpdated = this.OnCosmeticsUpdated;
 				if (onCosmeticsUpdated == null)
@@ -1533,11 +1533,21 @@ namespace GorillaNetworking
 			}
 		}
 
-		public void UpdateWornCosmetics(bool sync = false)
+		public void UpdateWornCosmetics()
+		{
+			this.UpdateWornCosmetics(false, false);
+		}
+
+		public void UpdateWornCosmetics(bool sync)
+		{
+			this.UpdateWornCosmetics(sync, false);
+		}
+
+		public void UpdateWornCosmetics(bool sync, bool playfx)
 		{
 			VRRig localRig = VRRig.LocalRig;
 			this.activeMergedSet.MergeInSets(this.currentWornSet, this.tempUnlockedSet, (string id) => PlayerCosmeticsSystem.IsTemporaryCosmeticAllowed(localRig, id));
-			GorillaTagger.Instance.offlineVRRig.LocalUpdateCosmeticsWithTryon(this.activeMergedSet, this.tryOnSet);
+			GorillaTagger.Instance.offlineVRRig.LocalUpdateCosmeticsWithTryon(this.activeMergedSet, this.tryOnSet, playfx);
 			if (sync && GorillaTagger.Instance.myVRRig != null)
 			{
 				if (this.isHidingCosmeticsFromRemotePlayers)
@@ -1547,7 +1557,7 @@ namespace GorillaNetworking
 				}
 				int[] array = this.activeMergedSet.ToPackedIDArray();
 				int[] array2 = this.tryOnSet.ToPackedIDArray();
-				GorillaTagger.Instance.myVRRig.SendRPC("RPC_UpdateCosmeticsWithTryonPacked", RpcTarget.Others, new object[] { array, array2 });
+				GorillaTagger.Instance.myVRRig.SendRPC("RPC_UpdateCosmeticsWithTryonPacked", RpcTarget.Others, new object[] { array, array2, playfx });
 			}
 		}
 
@@ -2735,38 +2745,48 @@ namespace GorillaNetworking
 
 		public void PressWardrobeScrollOutfit(bool forward)
 		{
-			if (!CosmeticsController.CanScrollOutfits())
+			int num = CosmeticsController.selectedOutfit;
+			if (forward)
+			{
+				num = (num + 1) % this.outfitSystemConfig.maxOutfits;
+			}
+			else
+			{
+				num--;
+				if (num < 0)
+				{
+					num = this.outfitSystemConfig.maxOutfits - 1;
+				}
+			}
+			this.LoadSavedOutfit(num);
+		}
+
+		public void LoadSavedOutfit(int newOutfitIndex)
+		{
+			if (!CosmeticsController.CanScrollOutfits() || newOutfitIndex == CosmeticsController.selectedOutfit || newOutfitIndex < 0 || newOutfitIndex >= this.outfitSystemConfig.maxOutfits)
 			{
 				return;
 			}
 			this.savedOutfits[CosmeticsController.selectedOutfit].CopyItems(this.currentWornSet);
+			this.savedColors[CosmeticsController.selectedOutfit] = new Vector3(VRRig.LocalRig.playerColor.r, VRRig.LocalRig.playerColor.g, VRRig.LocalRig.playerColor.b);
 			this.SaveOutfitsToMothership();
-			if (forward)
-			{
-				CosmeticsController.selectedOutfit = (CosmeticsController.selectedOutfit + 1) % this.outfitSystemConfig.maxOutfits;
-			}
-			else
-			{
-				CosmeticsController.selectedOutfit--;
-				if (CosmeticsController.selectedOutfit < 0)
-				{
-					CosmeticsController.selectedOutfit = this.outfitSystemConfig.maxOutfits - 1;
-				}
-			}
+			CosmeticsController.selectedOutfit = newOutfitIndex;
 			PlayerPrefs.SetInt(this.outfitSystemConfig.selectedOutfitPref, CosmeticsController.selectedOutfit);
 			PlayerPrefs.Save();
 			CosmeticsController.CosmeticSet cosmeticSet = this.savedOutfits[CosmeticsController.selectedOutfit];
+			bool flag = true;
 			for (int i = 0; i < 16; i++)
 			{
-				this.currentWornSet.items[i] = cosmeticSet.items[i];
-				if (!cosmeticSet.items[i].isNullItem)
+				CosmeticsController.CosmeticSlots cosmeticSlots = (CosmeticsController.CosmeticSlots)i;
+				if ((cosmeticSlots != CosmeticsController.CosmeticSlots.ArmLeft && cosmeticSlots != CosmeticsController.CosmeticSlots.ArmRight) || flag)
 				{
-					this.tryOnSet.items[i] = this.nullItem;
+					this.ApplyNewItem(cosmeticSet, i);
 				}
 			}
+			this.UpdateMonkeColor(this.savedColors[CosmeticsController.selectedOutfit], true);
 			this.SaveCurrentItemPreferences();
 			this.UpdateShoppingCart();
-			this.UpdateWornCosmetics(true);
+			this.UpdateWornCosmetics(true, true);
 			this.UpdateWardrobeModelsAndButtons();
 			Action onCosmeticsUpdated = this.OnCosmeticsUpdated;
 			if (onCosmeticsUpdated == null)
@@ -2774,6 +2794,15 @@ namespace GorillaNetworking
 				return;
 			}
 			onCosmeticsUpdated();
+		}
+
+		private void ApplyNewItem(CosmeticsController.CosmeticSet outfit, int i)
+		{
+			this.currentWornSet.items[i] = outfit.items[i];
+			if (!outfit.items[i].isNullItem)
+			{
+				this.tryOnSet.items[i] = this.nullItem;
+			}
 		}
 
 		private void LoadSavedOutfits()
@@ -2784,6 +2813,7 @@ namespace GorillaNetworking
 			}
 			CosmeticsController.loadOutfitsInProgress = true;
 			this.savedOutfits = new CosmeticsController.CosmeticSet[this.outfitSystemConfig.maxOutfits];
+			this.savedColors = new Vector3[this.outfitSystemConfig.maxOutfits];
 			if (!MothershipClientApiUnity.GetUserDataValue(this.outfitSystemConfig.mothershipKey, new Action<MothershipUserData>(this.GetSavedOutfitsSuccess), new Action<MothershipError, int>(this.GetSavedOutfitsFail), ""))
 			{
 				GTDev.LogError<string>("CosmeticsController LoadSavedOutfits GetUserDataValue failed", null);
@@ -2844,9 +2874,17 @@ namespace GorillaNetworking
 				{
 					this.savedOutfits[num].CopyItems(cosmeticSet);
 				}
+				float @float = PlayerPrefs.GetFloat("redValue", 0f);
+				float float2 = PlayerPrefs.GetFloat("greenValue", 0f);
+				float float3 = PlayerPrefs.GetFloat("blueValue", 0f);
+				if (@float > 0f || float2 > 0f || float3 > 0f)
+				{
+					this.savedColors[num] = new Vector3(@float, float2, float3);
+				}
 			}
 			CosmeticsController.selectedOutfit = num;
 			this.currentWornSet.CopyItems(this.savedOutfits[CosmeticsController.selectedOutfit]);
+			this.UpdateMonkeColor(this.savedColors[CosmeticsController.selectedOutfit], true);
 			CosmeticsController.loadedSavedOutfits = true;
 			CosmeticsController.loadOutfitsInProgress = false;
 			Action onOutfitsUpdated = this.OnOutfitsUpdated;
@@ -2855,6 +2893,30 @@ namespace GorillaNetworking
 				return;
 			}
 			onOutfitsUpdated();
+		}
+
+		private void UpdateMonkeColor(Vector3 col, bool saveToPrefs)
+		{
+			float num = Mathf.Clamp(col.x, 0f, 1f);
+			float num2 = Mathf.Clamp(col.y, 0f, 1f);
+			float num3 = Mathf.Clamp(col.z, 0f, 1f);
+			GorillaTagger.Instance.UpdateColor(num, num2, num3);
+			GorillaComputer.instance.UpdateColor(num, num2, num3);
+			if (CosmeticsController.OnPlayerColorSet != null)
+			{
+				CosmeticsController.OnPlayerColorSet(num, num2, num3);
+			}
+			if (NetworkSystem.Instance.InRoom)
+			{
+				GorillaTagger.Instance.myVRRig.SendRPC("RPC_InitializeNoobMaterial", RpcTarget.All, new object[] { num, num2, num3 });
+			}
+			if (saveToPrefs)
+			{
+				PlayerPrefs.SetFloat("redValue", num);
+				PlayerPrefs.SetFloat("greenValue", num2);
+				PlayerPrefs.SetFloat("blueValue", num3);
+				PlayerPrefs.Save();
+			}
 		}
 
 		private void SaveOutfitsToMothership()
@@ -2901,26 +2963,23 @@ namespace GorillaNetworking
 			{
 				return string.Empty;
 			}
+			CosmeticsController.outfitDataTemp = new CosmeticsController.OutfitData();
 			this.sb.Clear();
 			for (int i = 0; i < this.savedOutfits.Length; i++)
 			{
+				CosmeticsController.outfitDataTemp.Clear();
 				CosmeticsController.CosmeticSet cosmeticSet = this.savedOutfits[i];
 				for (int j = 0; j < cosmeticSet.items.Length; j++)
 				{
 					CosmeticsController.CosmeticItem cosmeticItem = cosmeticSet.items[j];
-					if (cosmeticItem.isNullItem)
-					{
-						this.sb.Append("null");
-					}
-					else
-					{
-						this.sb.Append(string.IsNullOrEmpty(cosmeticItem.displayName) ? "null" : cosmeticItem.displayName);
-					}
-					if (j < cosmeticSet.items.Length - 1)
-					{
-						this.sb.Append(this.outfitSystemConfig.itemSeparator);
-					}
+					string text = ((cosmeticItem.isNullItem || string.IsNullOrEmpty(cosmeticItem.displayName)) ? "null" : cosmeticItem.displayName);
+					CosmeticsController.outfitDataTemp.itemIDs.Add(text);
 				}
+				if (VRRig.LocalRig != null)
+				{
+					CosmeticsController.outfitDataTemp.color = this.savedColors[i];
+				}
+				this.sb.Append(JsonUtility.ToJson(CosmeticsController.outfitDataTemp));
 				if (i < this.savedOutfits.Length - 1)
 				{
 					this.sb.Append(this.outfitSystemConfig.outfitSeparator);
@@ -2935,6 +2994,7 @@ namespace GorillaNetworking
 			{
 				this.savedOutfits[i] = new CosmeticsController.CosmeticSet();
 				this.savedOutfits[i].ClearSet(this.nullItem);
+				this.savedColors[i] = CosmeticsController.defaultColor;
 			}
 		}
 
@@ -2954,6 +3014,7 @@ namespace GorillaNetworking
 					if (i >= array.Length)
 					{
 						this.savedOutfits[i].ClearSet(this.nullItem);
+						this.savedColors[i] = CosmeticsController.defaultColor;
 					}
 					else
 					{
@@ -2961,10 +3022,13 @@ namespace GorillaNetworking
 						if (text.IsNullOrEmpty())
 						{
 							this.savedOutfits[i].ClearSet(this.nullItem);
+							this.savedColors[i] = CosmeticsController.defaultColor;
 						}
 						else
 						{
-							this.savedOutfits[i].ParseSetFromString(this, text);
+							Vector3 vector;
+							this.savedOutfits[i].ParseSetFromString(this, text, out vector);
+							this.savedColors[i] = vector;
 						}
 					}
 				}
@@ -3174,6 +3238,10 @@ namespace GorillaNetworking
 
 		private CosmeticsController.CosmeticSet[] savedOutfits;
 
+		private Vector3[] savedColors;
+
+		private static CosmeticsController.OutfitData outfitDataTemp;
+
 		private string outfitStringMothership = string.Empty;
 
 		private string outfitStringPendingSave = string.Empty;
@@ -3186,7 +3254,11 @@ namespace GorillaNetworking
 
 		private static int selectedOutfit = 0;
 
+		private static readonly Vector3 defaultColor = new Vector3(0f, 0f, 0f);
+
 		public Action OnOutfitsUpdated;
+
+		public static Action<float, float, float> OnPlayerColorSet;
 
 		private StringBuilder sb = new StringBuilder(256);
 
@@ -3509,6 +3581,10 @@ namespace GorillaNetworking
 						if (rig.IsItemAllowed(itemNameFromDisplayName2) && cosmeticItemInstance2 != null)
 						{
 							cosmeticItemInstance2.EnableItem((CosmeticsController.CosmeticSlots)slotIndex, rig);
+							if ((rig.isLocal && slotIndex == 0) || slotIndex == 2)
+							{
+								PlayerPrefFlags.TouchIf(PlayerPrefFlags.Flag.SHOW_1P_COSMETICS, false);
+							}
 						}
 					}
 					return;
@@ -3594,8 +3670,9 @@ namespace GorillaNetworking
 				}
 			}
 
-			public void ParseSetFromString(CosmeticsController controller, string setString)
+			public void ParseSetFromString(CosmeticsController controller, string setString, out Vector3 color)
 			{
+				color = CosmeticsController.defaultColor;
 				if (setString.IsNullOrEmpty())
 				{
 					this.ClearSet(controller.nullItem);
@@ -3603,24 +3680,35 @@ namespace GorillaNetworking
 					return;
 				}
 				int num = 16;
-				char c = ',';
-				if (controller.outfitSystemConfig != null)
+				CosmeticsController.OutfitData outfitData = new CosmeticsController.OutfitData();
+				try
 				{
-					c = controller.outfitSystemConfig.itemSeparator;
+					outfitData = JsonUtility.FromJson<CosmeticsController.OutfitData>(setString);
+					color = outfitData.color;
 				}
-				string[] array = setString.Split(c, num, StringSplitOptions.None);
-				if (array == null || array.Length < num)
+				catch (Exception)
 				{
-					this.ClearSet(controller.nullItem);
-					GTDev.LogError<string>(string.Format("CosmeticsController ParseSetFromString: wrong number of slots {0} {1}", array.Length, setString), null);
-					return;
+					char c = ',';
+					if (controller.outfitSystemConfig != null)
+					{
+						c = controller.outfitSystemConfig.itemSeparator;
+					}
+					string[] array = setString.Split(c, num, StringSplitOptions.None);
+					if (array == null || array.Length > num)
+					{
+						this.ClearSet(controller.nullItem);
+						GTDev.LogError<string>(string.Format("CosmeticsController ParseSetFromString: wrong number of slots {0} {1}", array.Length, setString), null);
+						return;
+					}
+					outfitData.Clear();
+					outfitData.itemIDs = new List<string>(array);
 				}
 				try
 				{
 					for (int i = 0; i < num; i++)
 					{
 						CosmeticsController.CosmeticSlots cosmeticSlots = (CosmeticsController.CosmeticSlots)i;
-						string text = array[i];
+						string text = ((i < outfitData.itemIDs.Count) ? outfitData.itemIDs[i] : "null");
 						if (text.IsNullOrEmpty() || text == "null" || text == "NOTHING")
 						{
 							this.items[i] = controller.nullItem;
@@ -3873,6 +3961,30 @@ namespace GorillaNetworking
 			NotWearing,
 			Partial,
 			Complete
+		}
+
+		public class OutfitData
+		{
+			public OutfitData()
+			{
+				this.version = 1;
+				this.itemIDs = new List<string>(16);
+				this.color = CosmeticsController.defaultColor;
+			}
+
+			public void Clear()
+			{
+				this.itemIDs.Clear();
+				this.color = CosmeticsController.defaultColor;
+			}
+
+			public const int OUTFIT_DATA_VERSION = 1;
+
+			public int version;
+
+			public List<string> itemIDs;
+
+			public Vector3 color;
 		}
 	}
 }

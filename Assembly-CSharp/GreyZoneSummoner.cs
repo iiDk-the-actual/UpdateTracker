@@ -101,7 +101,7 @@ public class GreyZoneSummoner : MonoBehaviour
 
 	public void ColliderEnteredArea(TriggerEventNotifier notifier, Collider other)
 	{
-		ZoneEntity component = other.GetComponent<ZoneEntity>();
+		ZoneEntityBSP component = other.GetComponent<ZoneEntityBSP>();
 		VRRig vrrig = ((component != null) ? component.entityRig : null);
 		if (vrrig != null && this.greyZoneManager != null)
 		{
@@ -111,7 +111,7 @@ public class GreyZoneSummoner : MonoBehaviour
 
 	public void ColliderExitedArea(TriggerEventNotifier notifier, Collider other)
 	{
-		ZoneEntity component = other.GetComponent<ZoneEntity>();
+		ZoneEntityBSP component = other.GetComponent<ZoneEntityBSP>();
 		VRRig vrrig = ((component != null) ? component.entityRig : null);
 		if (vrrig != null && this.greyZoneManager != null)
 		{

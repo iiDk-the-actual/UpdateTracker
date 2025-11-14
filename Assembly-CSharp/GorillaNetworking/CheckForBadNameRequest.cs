@@ -7,5 +7,7 @@ namespace GorillaNetworking
 		public string name;
 
 		public bool forRoom;
+
+		public bool forTroop;
 	}
 }

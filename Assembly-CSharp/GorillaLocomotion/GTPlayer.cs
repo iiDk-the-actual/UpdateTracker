@@ -411,21 +411,20 @@ namespace GorillaLocomotion
 
 		public float LastHandTouchedGroundAtNetworkTime { get; private set; }
 
-		public void EnableStilt(StiltID stiltID, Vector3 currentTipWorldPos, float maxArmLength, bool canTag, bool canStun, float customBoostFactor = 0f, GorillaVelocityTracker velocityTracker = null)
+		public void EnableStilt(StiltID stiltID, bool isLeftHand, Vector3 currentTipWorldPos, float maxArmLength, bool canTag, bool canStun, float customBoostFactor = 0f, GorillaVelocityTracker velocityTracker = null)
 		{
-			bool flag = stiltID == StiltID.Held_Left || stiltID == StiltID.Snapped_Left;
 			this.stiltStates[(int)stiltID] = new GTPlayer.HandState
 			{
 				isActive = true,
-				controllerTransform = (flag ? this.leftHand : this.rightHand).controllerTransform,
-				velocityTracker = ((velocityTracker != null) ? velocityTracker : (flag ? this.leftHand : this.rightHand).velocityTracker),
+				controllerTransform = (isLeftHand ? this.leftHand : this.rightHand).controllerTransform,
+				velocityTracker = ((velocityTracker != null) ? velocityTracker : (isLeftHand ? this.leftHand : this.rightHand).velocityTracker),
 				handRotOffset = Quaternion.identity,
 				canTag = canTag,
 				canStun = canStun,
 				customBoostFactor = customBoostFactor,
 				hasCustomBoost = (customBoostFactor > 0f)
 			};
-			this.stiltStates[(int)stiltID].Init(this, flag, maxArmLength);
+			this.stiltStates[(int)stiltID].Init(this, isLeftHand, maxArmLength);
 			this.UpdateStiltOffset(stiltID, currentTipWorldPos);
 		}
 
@@ -1310,7 +1309,7 @@ namespace GorillaLocomotion
 			this.anyHandIsSticking = false;
 			this.leftHand.FirstIteration(ref vector6, ref num3, num2);
 			this.rightHand.FirstIteration(ref vector6, ref num3, num2);
-			for (int i = 0; i < 4; i++)
+			for (int i = 0; i < 12; i++)
 			{
 				if (this.stiltStates[i].isActive)
 				{
@@ -1360,12 +1359,13 @@ namespace GorillaLocomotion
 			this.lastHeadPosition = this.headCollider.transform.position;
 			this.areBothTouching = (!this.leftHand.isColliding && !this.leftHand.wasColliding) || (!this.rightHand.isColliding && !this.rightHand.wasColliding);
 			this.HandleHandLink();
+			this.HandleTentacleMovement();
 			this.anyHandIsColliding = false;
 			this.anyHandIsSliding = false;
 			this.anyHandIsSticking = false;
 			this.leftHand.FinalizeHandPosition();
 			this.rightHand.FinalizeHandPosition();
-			for (int j = 0; j < 4; j++)
+			for (int j = 0; j < 12; j++)
 			{
 				if (this.stiltStates[j].isActive)
 				{
@@ -1447,7 +1447,7 @@ namespace GorillaLocomotion
 				}
 				for (int k = 0; k < this.stiltStates.Length; k++)
 				{
-					if (this.stiltStates[k].isSliding)
+					if (this.stiltStates[k].isActive && this.stiltStates[k].isSliding)
 					{
 						if (!this.stiltStates[k].isLeftHand)
 						{
@@ -1682,7 +1682,7 @@ namespace GorillaLocomotion
 			}
 			this.leftHand.OnEndOfFrame();
 			this.rightHand.OnEndOfFrame();
-			for (int m = 0; m < 4; m++)
+			for (int m = 0; m < 12; m++)
 			{
 				if (this.stiltStates[m].isActive)
 				{
@@ -1971,6 +1971,47 @@ namespace GorillaLocomotion
 					this.currentSwing.lastGrabTime = Time.time;
 				}
 			}
+		}
+
+		public void RequestTentacleMove(bool isLeftHand, Vector3 move)
+		{
+			if (isLeftHand)
+			{
+				this.hasLeftHandTentacleMove = true;
+				this.leftHandTentacleMove = move;
+				return;
+			}
+			this.hasRightHandTentacleMove = true;
+			this.rightHandTentacleMove = move;
+		}
+
+		public void HandleTentacleMovement()
+		{
+			Vector3 vector;
+			if (this.hasLeftHandTentacleMove)
+			{
+				if (this.hasRightHandTentacleMove)
+				{
+					vector = (this.leftHandTentacleMove + this.rightHandTentacleMove) * 0.5f;
+					this.hasRightHandTentacleMove = (this.hasLeftHandTentacleMove = false);
+				}
+				else
+				{
+					vector = this.leftHandTentacleMove;
+					this.hasLeftHandTentacleMove = false;
+				}
+			}
+			else
+			{
+				if (!this.hasRightHandTentacleMove)
+				{
+					return;
+				}
+				vector = this.rightHandTentacleMove;
+				this.hasRightHandTentacleMove = false;
+			}
+			this.playerRigidBody.transform.position += vector;
+			this.playerRigidBody.linearVelocity = Vector3.zero;
 		}
 
 		public HandLinkAuthorityStatus GetSelfHandLinkAuthority()
@@ -2527,15 +2568,15 @@ namespace GorillaLocomotion
 			Vector3 localPosition = this.climbHelper.localPosition;
 			if (climbable.snapX)
 			{
-				GTPlayer.<BeginClimbing>g__SnapAxis|399_0(ref localPosition.x, climbable.maxDistanceSnap);
+				GTPlayer.<BeginClimbing>g__SnapAxis|405_0(ref localPosition.x, climbable.maxDistanceSnap);
 			}
 			if (climbable.snapY)
 			{
-				GTPlayer.<BeginClimbing>g__SnapAxis|399_0(ref localPosition.y, climbable.maxDistanceSnap);
+				GTPlayer.<BeginClimbing>g__SnapAxis|405_0(ref localPosition.y, climbable.maxDistanceSnap);
 			}
 			if (climbable.snapZ)
 			{
-				GTPlayer.<BeginClimbing>g__SnapAxis|399_0(ref localPosition.z, climbable.maxDistanceSnap);
+				GTPlayer.<BeginClimbing>g__SnapAxis|405_0(ref localPosition.z, climbable.maxDistanceSnap);
 			}
 			this.climbHelperTargetPos = localPosition;
 			climbable.isBeingClimbed = true;
@@ -2697,6 +2738,11 @@ namespace GorillaLocomotion
 		public void SetVelocity(Vector3 velocity)
 		{
 			this.playerRigidBody.linearVelocity = velocity;
+		}
+
+		internal void RigidbodyMovePosition(Vector3 pos)
+		{
+			this.playerRigidBody.MovePosition(pos);
 		}
 
 		public void TempFreezeHand(bool isLeft, float freezeDuration)
@@ -3240,7 +3286,7 @@ namespace GorillaLocomotion
 		}
 
 		[CompilerGenerated]
-		internal static void <BeginClimbing>g__SnapAxis|399_0(ref float val, float maxDist)
+		internal static void <BeginClimbing>g__SnapAxis|405_0(ref float val, float maxDist)
 		{
 			if (val > maxDist)
 			{
@@ -3281,7 +3327,7 @@ namespace GorillaLocomotion
 		[SerializeField]
 		private GTPlayer.HandState rightHand;
 
-		private GTPlayer.HandState[] stiltStates = new GTPlayer.HandState[4];
+		private GTPlayer.HandState[] stiltStates = new GTPlayer.HandState[12];
 
 		private bool anyHandIsColliding;
 
@@ -3777,6 +3823,14 @@ namespace GorillaLocomotion
 		private Quaternion hoverboardPlayerLocalRot;
 
 		private bool didHoverLastFrame;
+
+		private bool hasLeftHandTentacleMove;
+
+		private bool hasRightHandTentacleMove;
+
+		private Vector3 leftHandTentacleMove;
+
+		private Vector3 rightHandTentacleMove;
 
 		private GTPlayer.HandHoldState activeHandHold;
 

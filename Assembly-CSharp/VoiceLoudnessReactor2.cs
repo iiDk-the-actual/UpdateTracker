@@ -34,7 +34,6 @@ public class VoiceLoudnessReactor2 : MonoBehaviour, ITickSystemTick
 				}
 			}
 		}
-		this.smoothedLoudness = this.Loudness;
 		TickSystem<object>.AddTickCallback(this);
 	}
 
@@ -47,13 +46,8 @@ public class VoiceLoudnessReactor2 : MonoBehaviour, ITickSystemTick
 
 	public void Tick()
 	{
-		float num = 1f - Mathf.Exp(-this.responsiveness * Time.deltaTime);
-		this.smoothedLoudness = Mathf.Lerp(this.smoothedLoudness, this.Loudness, num);
-		this.continuousProperties.ApplyAll(this.smoothedLoudness);
+		this.continuousProperties.ApplyAll(this.Loudness);
 	}
-
-	[Tooltip("How quickly the internal loudness approaches the real loudness. A low value will take a long time to match the true volume but will be more resistant to fluctuations. Note: If the value is too high, you may notice some jerkiness in the output because the underlying GorillaSpeakerLoudness doesn't update every frame.")]
-	public float responsiveness = 5f;
 
 	[Tooltip("Multiply the microphone input by this value. A good default is 15.")]
 	public float sensitivity = 15f;
@@ -61,6 +55,4 @@ public class VoiceLoudnessReactor2 : MonoBehaviour, ITickSystemTick
 	public ContinuousPropertyArray continuousProperties;
 
 	private GorillaSpeakerLoudness gsl;
-
-	private float smoothedLoudness;
 }

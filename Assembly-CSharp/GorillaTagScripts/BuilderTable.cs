@@ -1146,19 +1146,19 @@ namespace GorillaTagScripts
 		public static bool IsLocalPlayerInBuilderZone()
 		{
 			GorillaTagger instance = GorillaTagger.Instance;
-			ZoneEntity zoneEntity;
+			ZoneEntityBSP zoneEntityBSP;
 			if (instance == null)
 			{
-				zoneEntity = null;
+				zoneEntityBSP = null;
 			}
 			else
 			{
 				VRRig offlineVRRig = instance.offlineVRRig;
-				zoneEntity = ((offlineVRRig != null) ? offlineVRRig.zoneEntity : null);
+				zoneEntityBSP = ((offlineVRRig != null) ? offlineVRRig.zoneEntity : null);
 			}
-			ZoneEntity zoneEntity2 = zoneEntity;
+			ZoneEntityBSP zoneEntityBSP2 = zoneEntityBSP;
 			BuilderTable builderTable;
-			return !(zoneEntity2 == null) && BuilderTable.TryGetBuilderTableForZone(zoneEntity2.currentZone, out builderTable) && builderTable.IsInBuilderZone();
+			return !(zoneEntityBSP2 == null) && BuilderTable.TryGetBuilderTableForZone(zoneEntityBSP2.currentZone, out builderTable) && builderTable.IsInBuilderZone();
 		}
 
 		public bool IsInBuilderZone()

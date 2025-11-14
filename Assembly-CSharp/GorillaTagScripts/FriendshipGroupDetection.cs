@@ -344,7 +344,7 @@ namespace GorillaTagScripts
 
 		private void UpdateWarningSigns()
 		{
-			ZoneEntity zoneEntity = GorillaTagger.Instance.offlineVRRig.zoneEntity;
+			ZoneEntityBSP zoneEntity = GorillaTagger.Instance.offlineVRRig.zoneEntity;
 			GTZone currentRoomZone = PhotonNetworkController.Instance.CurrentRoomZone;
 			GroupJoinZoneAB groupJoinZoneAB = 0;
 			if (this.myPartyMemberIDs != null)

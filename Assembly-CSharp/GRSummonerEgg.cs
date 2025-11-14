@@ -34,9 +34,7 @@ public class GRSummonerEgg : MonoBehaviour
 		{
 			Vector3 vector = this.entity.transform.position + this.spawnOffset;
 			Quaternion identity = Quaternion.identity;
-			GameEntityManager gameEntityManager = GhostReactorManager.Get(this.entity).gameEntityManager;
-			Debug.Log(string.Format("Attempting to spawn {0} from egg at {1}", this.entityPrefabToSpawn.name, vector.ToString()), this);
-			gameEntityManager.RequestCreateItem(this.entityPrefabToSpawn.name.GetStaticHash(), vector, identity, (long)((this.summonedEntity != null) ? this.summonedEntity.GetSummonerNetID() : 0));
+			GhostReactorManager.Get(this.entity).gameEntityManager.RequestCreateItem(this.entityPrefabToSpawn.name.GetStaticHash(), vector, identity, (long)((this.summonedEntity != null) ? this.summonedEntity.GetSummonerNetID() : 0));
 		}
 		base.Invoke("DestroySelf", 2f);
 		this.hatchSound.Play(this.hatchAudio);

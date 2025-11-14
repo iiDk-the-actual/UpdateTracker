@@ -26,14 +26,17 @@ public class LocalisationUI : MonoBehaviour
 
 	private void Start()
 	{
-		LocalisationManager.RegisterOnLanguageChanged(new Action(this.OnLanguageChanged));
 		this.ConstructLocalisationUI();
+		this.CheckSelectedLanguage();
 	}
 
 	private void OnEnable()
 	{
 		LocalisationManager.RegisterOnLanguageChanged(new Action(this.OnLanguageChanged));
-		this.CheckSelectedLanguage();
+		if (this._hasConstructedUI)
+		{
+			this.CheckSelectedLanguage();
+		}
 	}
 
 	private void OnDisable()
@@ -85,6 +88,7 @@ public class LocalisationUI : MonoBehaviour
 				this._languageButtons.Add(newButton);
 			}
 		}
+		this._hasConstructedUI = true;
 	}
 
 	private void CheckSelectedLanguage()
@@ -174,4 +178,6 @@ public class LocalisationUI : MonoBehaviour
 	private KIDUIButton _activeButton;
 
 	private List<KIDUIButton> _languageButtons = new List<KIDUIButton>();
+
+	private bool _hasConstructedUI;
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using GorillaTagScripts.GhostReactor;
 using TMPro;
 using UnityEngine;
 
@@ -37,25 +38,51 @@ public class GhostReactorShiftDepthDisplay
 			int num = 0;
 			if (this.shiftManager.coresRequiredToDelveDeeper > 0)
 			{
-				this.cachedStringBuilder.Append(string.Format("Deposit {0} Cores\n", this.shiftManager.coresRequiredToDelveDeeper));
+				int num2 = Math.Min(this.shiftManager.shiftStats.GetShiftStat(GRShiftStatType.CoresCollected), this.shiftManager.coresRequiredToDelveDeeper);
+				StringBuilder stringBuilder = new StringBuilder();
+				stringBuilder.Append(string.Format("Deposit {0} Cores ", this.shiftManager.coresRequiredToDelveDeeper));
+				stringBuilder.Append(string.Format("({0}/{1})", num2, this.shiftManager.coresRequiredToDelveDeeper));
+				stringBuilder.Append("\n");
+				this.cachedStringBuilder.Append(stringBuilder);
 				num++;
 			}
 			if (this.shiftManager.sentientCoresRequiredToDelveDeeper > 0)
 			{
-				this.cachedStringBuilder.Append(string.Format("Collect {0} Seeds\n", this.shiftManager.sentientCoresRequiredToDelveDeeper));
+				int num3 = Math.Min(this.shiftManager.shiftStats.GetShiftStat(GRShiftStatType.SentientCoresCollected), this.shiftManager.sentientCoresRequiredToDelveDeeper);
+				StringBuilder stringBuilder2 = new StringBuilder();
+				stringBuilder2.Append(string.Format("Collect {0} Seeds ", this.shiftManager.sentientCoresRequiredToDelveDeeper));
+				stringBuilder2.Append(string.Format("({0}/{1})", num3, this.shiftManager.sentientCoresRequiredToDelveDeeper));
+				stringBuilder2.Append("\n");
+				this.cachedStringBuilder.Append(stringBuilder2);
 				num++;
+			}
+			foreach (GREnemyCount grenemyCount in this.shiftManager.killsRequiredToDelveDeeper)
+			{
+				if (grenemyCount.Count > 0)
+				{
+					int num4 = Math.Min(this.shiftManager.shiftStats.EnemyKills[grenemyCount.EnemyType], grenemyCount.Count);
+					StringBuilder stringBuilder3 = new StringBuilder();
+					stringBuilder3.Append(string.Format("Kill {0} {1}s ", grenemyCount.Count, grenemyCount.EnemyType));
+					stringBuilder3.Append(string.Format("({0}/{1})", num4, grenemyCount.Count));
+					stringBuilder3.Append("\n");
+					this.cachedStringBuilder.Append(stringBuilder3);
+				}
 			}
 			if (this.shiftManager.maxPlayerDeaths >= 0)
 			{
-				this.cachedStringBuilder.Append(string.Format("Limit Incidents to {0}", this.shiftManager.maxPlayerDeaths));
+				StringBuilder stringBuilder4 = new StringBuilder();
+				stringBuilder4.Append(string.Format("Limit Incidents to {0} ", this.shiftManager.maxPlayerDeaths));
+				stringBuilder4.Append(string.Format("({0} so far)", this.shiftManager.shiftStats.GetShiftStat(GRShiftStatType.PlayerDeaths)));
+				stringBuilder4.Append("\n");
+				this.cachedStringBuilder.Append(stringBuilder4);
 				num++;
 			}
 			this.jumbotronRequirements.text = this.cachedStringBuilder.ToString();
-			int num2 = this.reactor.GetCurrLevelGenConfig().coresRequired * 5;
+			int num5 = this.reactor.GetCurrLevelGenConfig().coresRequired * 5;
 			int rewardXP = this.GetRewardXP();
 			this.cachedStringBuilder.Clear();
 			this.cachedStringBuilder.Append("<color=grey>Rewards:</color>\n");
-			this.cachedStringBuilder.Append(string.Format("+⑭{0}\n", num2));
+			this.cachedStringBuilder.Append(string.Format("+⑭{0}\n", num5));
 			this.cachedStringBuilder.Append(string.Format("+{0} XP\n", rewardXP));
 			this.jumbotronRewards.text = this.cachedStringBuilder.ToString();
 			break;
@@ -90,7 +117,16 @@ public class GhostReactorShiftDepthDisplay
 		bool flag = shiftStats.GetShiftStat(GRShiftStatType.CoresCollected) >= this.shiftManager.coresRequiredToDelveDeeper;
 		bool flag2 = shiftStats.GetShiftStat(GRShiftStatType.SentientCoresCollected) >= this.shiftManager.sentientCoresRequiredToDelveDeeper;
 		bool flag3 = this.shiftManager.maxPlayerDeaths < 0 || shiftStats.GetShiftStat(GRShiftStatType.PlayerDeaths) <= this.shiftManager.maxPlayerDeaths;
-		if (this.shiftManager.ShiftActive && flag && flag2 && flag3)
+		bool flag4 = true;
+		foreach (GREnemyCount grenemyCount in this.shiftManager.killsRequiredToDelveDeeper)
+		{
+			if (shiftStats.EnemyKills.GetValueOrDefault(grenemyCount.EnemyType) < grenemyCount.Count)
+			{
+				flag4 = false;
+				break;
+			}
+		}
+		if (this.shiftManager.ShiftActive && flag && flag2 && flag3 && flag4)
 		{
 			this.shiftManager.authorizedToDelveDeeper = true;
 		}

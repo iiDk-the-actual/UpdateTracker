@@ -58,14 +58,30 @@ public class GorillaTagCompetitiveServerApi : MonoBehaviour
 			GTDev.Log<string>("GetRankInformation Success: raw response: " + request.downloadHandler.text, null);
 			this.OnCompleteGetRankInformation(request.downloadHandler.text, callback);
 		}
+		else if (request.result != UnityWebRequest.Result.ProtocolError)
+		{
+			retry = true;
+		}
 		else
 		{
 			long responseCode = request.responseCode;
-			if (responseCode > 500L && responseCode < 600L)
+			if (responseCode >= 500L)
 			{
-				retry = true;
+				if (responseCode >= 600L)
+				{
+					goto IL_0156;
+				}
 			}
-			else if (request.result == UnityWebRequest.Result.ConnectionError)
+			else if (responseCode != 408L && responseCode != 429L)
+			{
+				goto IL_0156;
+			}
+			bool flag = true;
+			goto IL_0159;
+			IL_0156:
+			flag = false;
+			IL_0159:
+			if (flag)
 			{
 				retry = true;
 			}
@@ -78,9 +94,9 @@ public class GorillaTagCompetitiveServerApi : MonoBehaviour
 		{
 			if (this.GetRankInformationRetryCount < this.MAX_SERVER_RETRIES)
 			{
-				int num = (int)Mathf.Pow(2f, (float)(this.GetRankInformationRetryCount + 1));
+				float num = Random.Range(0.5f, Mathf.Pow(2f, (float)(this.GetRankInformationRetryCount + 1)));
 				this.GetRankInformationRetryCount++;
-				yield return new WaitForSeconds((float)num);
+				yield return new WaitForSeconds(num);
 				this.GetRankInformationInProgress = false;
 				this.RequestGetRankInformation(data.playfabIds, callback);
 			}
@@ -162,14 +178,30 @@ public class GorillaTagCompetitiveServerApi : MonoBehaviour
 			GTDev.Log<string>("CreateMatchId Success: raw response: " + request.downloadHandler.text, null);
 			this.OnCompleteCreateMatchId(request.downloadHandler.text, callback);
 		}
+		else if (request.result != UnityWebRequest.Result.ProtocolError)
+		{
+			retry = true;
+		}
 		else
 		{
 			long responseCode = request.responseCode;
-			if (responseCode > 500L && responseCode < 600L)
+			if (responseCode >= 500L)
 			{
-				retry = true;
+				if (responseCode >= 600L)
+				{
+					goto IL_0156;
+				}
 			}
-			else if (request.result == UnityWebRequest.Result.ConnectionError)
+			else if (responseCode != 408L && responseCode != 429L)
+			{
+				goto IL_0156;
+			}
+			bool flag = true;
+			goto IL_0159;
+			IL_0156:
+			flag = false;
+			IL_0159:
+			if (flag)
 			{
 				retry = true;
 			}
@@ -182,9 +214,9 @@ public class GorillaTagCompetitiveServerApi : MonoBehaviour
 		{
 			if (this.CreateMatchIdRetryCount < this.MAX_SERVER_RETRIES)
 			{
-				int num = (int)Mathf.Pow(2f, (float)(this.CreateMatchIdRetryCount + 1));
+				float num = Random.Range(0.5f, Mathf.Pow(2f, (float)(this.CreateMatchIdRetryCount + 1)));
 				this.CreateMatchIdRetryCount++;
-				yield return new WaitForSeconds((float)num);
+				yield return new WaitForSeconds(num);
 				this.CreateMatchIdInProgress = false;
 				this.RequestCreateMatchId(callback);
 			}
@@ -249,14 +281,30 @@ public class GorillaTagCompetitiveServerApi : MonoBehaviour
 			GTDev.Log<string>("ValidateMatchJoin Success: raw response: " + request.downloadHandler.text, null);
 			this.OnCompleteValidateMatchJoin(request.downloadHandler.text, callback);
 		}
+		else if (request.result != UnityWebRequest.Result.ProtocolError)
+		{
+			retry = true;
+		}
 		else
 		{
 			long responseCode = request.responseCode;
-			if (responseCode > 500L && responseCode < 600L)
+			if (responseCode >= 500L)
 			{
-				retry = true;
+				if (responseCode >= 600L)
+				{
+					goto IL_0156;
+				}
 			}
-			else if (request.result == UnityWebRequest.Result.ConnectionError)
+			else if (responseCode != 408L && responseCode != 429L)
+			{
+				goto IL_0156;
+			}
+			bool flag = true;
+			goto IL_0159;
+			IL_0156:
+			flag = false;
+			IL_0159:
+			if (flag)
 			{
 				retry = true;
 			}
@@ -269,9 +317,9 @@ public class GorillaTagCompetitiveServerApi : MonoBehaviour
 		{
 			if (this.ValidateMatchJoinRetryCount < this.MAX_SERVER_RETRIES)
 			{
-				int num = (int)Mathf.Pow(2f, (float)(this.ValidateMatchJoinRetryCount + 1));
+				float num = Random.Range(0.5f, Mathf.Pow(2f, (float)(this.ValidateMatchJoinRetryCount + 1)));
 				this.ValidateMatchJoinRetryCount++;
-				yield return new WaitForSeconds((float)num);
+				yield return new WaitForSeconds(num);
 				this.ValidateMatchJoinInProgress = false;
 				this.RequestValidateMatchJoin(data.matchId, callback);
 			}
@@ -352,14 +400,30 @@ public class GorillaTagCompetitiveServerApi : MonoBehaviour
 			GTDev.Log<string>("SubmitMatchScores Success: raw response: " + request.downloadHandler.text, null);
 			this.OnCompleteSubmitMatchScores(request.downloadHandler.text);
 		}
+		else if (request.result != UnityWebRequest.Result.ProtocolError)
+		{
+			retry = true;
+		}
 		else
 		{
 			long responseCode = request.responseCode;
-			if (responseCode > 500L && responseCode < 600L)
+			if (responseCode >= 500L)
 			{
-				retry = true;
+				if (responseCode >= 600L)
+				{
+					goto IL_0150;
+				}
 			}
-			else if (request.result == UnityWebRequest.Result.ConnectionError)
+			else if (responseCode != 408L && responseCode != 429L)
+			{
+				goto IL_0150;
+			}
+			bool flag = true;
+			goto IL_0153;
+			IL_0150:
+			flag = false;
+			IL_0153:
+			if (flag)
 			{
 				retry = true;
 			}
@@ -372,9 +436,9 @@ public class GorillaTagCompetitiveServerApi : MonoBehaviour
 		{
 			if (this.SubmitMatchScoresRetryCount < this.MAX_SERVER_RETRIES)
 			{
-				int num = (int)Mathf.Pow(2f, (float)(this.SubmitMatchScoresRetryCount + 1));
+				float num = Random.Range(0.5f, Mathf.Pow(2f, (float)(this.SubmitMatchScoresRetryCount + 1)));
 				this.SubmitMatchScoresRetryCount++;
-				yield return new WaitForSeconds((float)num);
+				yield return new WaitForSeconds(num);
 				this.SubmitMatchScoresInProgress = false;
 				this.RequestSubmitMatchScores(data.matchId, data.playerScores);
 			}
@@ -471,14 +535,30 @@ public class GorillaTagCompetitiveServerApi : MonoBehaviour
 			GTDev.Log<string>("PingRoom Success: raw response: " + request.downloadHandler.text, null);
 			this.OnCompletePingRoom(request.downloadHandler.text, callback);
 		}
+		else if (request.result != UnityWebRequest.Result.ProtocolError)
+		{
+			retry = true;
+		}
 		else
 		{
 			long responseCode = request.responseCode;
-			if (responseCode > 500L && responseCode < 600L)
+			if (responseCode >= 500L)
 			{
-				retry = true;
+				if (responseCode >= 600L)
+				{
+					goto IL_0156;
+				}
 			}
-			else if (request.result == UnityWebRequest.Result.ConnectionError)
+			else if (responseCode != 408L && responseCode != 429L)
+			{
+				goto IL_0156;
+			}
+			bool flag = true;
+			goto IL_0159;
+			IL_0156:
+			flag = false;
+			IL_0159:
+			if (flag)
 			{
 				retry = true;
 			}
@@ -491,9 +571,9 @@ public class GorillaTagCompetitiveServerApi : MonoBehaviour
 		{
 			if (this.PingMatchRetryCount < this.MAX_SERVER_RETRIES)
 			{
-				int num = (int)Mathf.Pow(2f, (float)(this.PingMatchRetryCount + 1));
+				float num = Random.Range(0.5f, Mathf.Pow(2f, (float)(this.PingMatchRetryCount + 1)));
 				this.ValidateMatchJoinRetryCount++;
-				yield return new WaitForSeconds((float)num);
+				yield return new WaitForSeconds(num);
 				this.PingMatchInProgress = false;
 				this.RequestPingRoom(data.matchId, callback);
 			}
@@ -555,14 +635,30 @@ public class GorillaTagCompetitiveServerApi : MonoBehaviour
 			GTDev.Log<string>("UnlockCompetitiveQueue Success: raw response: " + request.downloadHandler.text, null);
 			this.OnCompleteUnlockCompetitiveQueue(request.downloadHandler.text, callback);
 		}
+		else if (request.result != UnityWebRequest.Result.ProtocolError)
+		{
+			retry = true;
+		}
 		else
 		{
 			long responseCode = request.responseCode;
-			if (responseCode > 500L && responseCode < 600L)
+			if (responseCode >= 500L)
 			{
-				retry = true;
+				if (responseCode >= 600L)
+				{
+					goto IL_0156;
+				}
 			}
-			else if (request.result == UnityWebRequest.Result.ConnectionError)
+			else if (responseCode != 408L && responseCode != 429L)
+			{
+				goto IL_0156;
+			}
+			bool flag = true;
+			goto IL_0159;
+			IL_0156:
+			flag = false;
+			IL_0159:
+			if (flag)
 			{
 				retry = true;
 			}
@@ -575,9 +671,9 @@ public class GorillaTagCompetitiveServerApi : MonoBehaviour
 		{
 			if (this.UnlockCompetitiveQueueRetryCount < this.MAX_SERVER_RETRIES)
 			{
-				int num = (int)Mathf.Pow(2f, (float)(this.UnlockCompetitiveQueueRetryCount + 1));
+				float num = Random.Range(0.5f, Mathf.Pow(2f, (float)(this.UnlockCompetitiveQueueRetryCount + 1)));
 				this.ValidateMatchJoinRetryCount++;
-				yield return new WaitForSeconds((float)num);
+				yield return new WaitForSeconds(num);
 				this.UnlockCompetitiveQueueInProgress = false;
 				this.RequestUnlockCompetitiveQueue(data.unlocked, callback);
 			}

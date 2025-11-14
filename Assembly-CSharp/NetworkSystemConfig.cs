@@ -81,11 +81,11 @@ public struct NetworkSystemConfig
 
 	private static string gameVersionType = "live1";
 
-	public static string prependCode = "SuperPrependInfection407543";
+	public static string prependCode = "345q09387Prepend";
 
 	public static int majorVersion = 1;
 
 	public static int minorVersion = 1;
 
-	public static int minorVersion2 = 123;
+	public static int minorVersion2 = 124;
 }

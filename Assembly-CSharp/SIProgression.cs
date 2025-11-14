@@ -36,13 +36,7 @@ public class SIProgression : MonoBehaviour, IGorillaSliceableSimple, GorillaQues
 			SIProgression.Instance = this;
 		}
 		this.emptyNode = default(SIProgression.SINode);
-		this._resourceToString = new Dictionary<SIResource.ResourceType, string>();
-		this._resourceToString[SIResource.ResourceType.TechPoint] = "SI_TechPoints";
-		this._resourceToString[SIResource.ResourceType.StrangeWood] = "SI_StrangeWood";
-		this._resourceToString[SIResource.ResourceType.WeirdGear] = "SI_WeirdGear";
-		this._resourceToString[SIResource.ResourceType.VibratingSpring] = "SI_VibratingSpring";
-		this._resourceToString[SIResource.ResourceType.BouncySand] = "SI_BouncySand";
-		this._resourceToString[SIResource.ResourceType.FloppyMetal] = "SI_FloppyMetal";
+		SIProgression.InitResourceToStringDictionary();
 		this.resourceCapsArray = Enumerable.Repeat<int>(int.MaxValue, 6).ToArray<int>();
 		for (int i = 0; i < this.resourceCaps.Length; i++)
 		{
@@ -79,6 +73,26 @@ public class SIProgression : MonoBehaviour, IGorillaSliceableSimple, GorillaQues
 			ProgressionManager.Instance.OnNodeUnlocked -= this.HandleNodeUnlocked;
 		}
 		GorillaSlicerSimpleManager.UnregisterSliceable(this, GorillaSlicerSimpleManager.UpdateStep.Update);
+	}
+
+	public static string GetResourceString(SIResource.ResourceType resourceType)
+	{
+		if (SIProgression._resourceToString == null)
+		{
+			SIProgression.InitResourceToStringDictionary();
+		}
+		return SIProgression._resourceToString[resourceType];
+	}
+
+	private static void InitResourceToStringDictionary()
+	{
+		SIProgression._resourceToString = new Dictionary<SIResource.ResourceType, string>();
+		SIProgression._resourceToString[SIResource.ResourceType.TechPoint] = "SI_TechPoints";
+		SIProgression._resourceToString[SIResource.ResourceType.StrangeWood] = "SI_StrangeWood";
+		SIProgression._resourceToString[SIResource.ResourceType.WeirdGear] = "SI_WeirdGear";
+		SIProgression._resourceToString[SIResource.ResourceType.VibratingSpring] = "SI_VibratingSpring";
+		SIProgression._resourceToString[SIResource.ResourceType.BouncySand] = "SI_BouncySand";
+		SIProgression._resourceToString[SIResource.ResourceType.FloppyMetal] = "SI_FloppyMetal";
 	}
 
 	public void Init()
@@ -171,7 +185,7 @@ public class SIProgression : MonoBehaviour, IGorillaSliceableSimple, GorillaQues
 	public int GetCurrencyAmount(SIResource.ResourceType currencyType)
 	{
 		ProgressionManager.MothershipItemSummary mothershipItemSummary;
-		if (!ProgressionManager.Instance.GetInventoryItem(this._resourceToString[currencyType], out mothershipItemSummary))
+		if (!ProgressionManager.Instance.GetInventoryItem(SIProgression._resourceToString[currencyType], out mothershipItemSummary))
 		{
 			return 0;
 		}
@@ -207,11 +221,12 @@ public class SIProgression : MonoBehaviour, IGorillaSliceableSimple, GorillaQues
 		{
 			ProgressionManager instance = ProgressionManager.Instance;
 			UserHydratedProgressionTreeResponse userHydratedProgressionTreeResponse = ((instance != null) ? instance.GetTree("SI_Gadgets") : null);
-			if (this.siNodes != null && this.siNodes[upgradeType].unlocked)
+			SIProgression.SINode sinode;
+			if (this.siNodes == null || !this.siNodes.TryGetValue(upgradeType, out sinode) || sinode.unlocked)
 			{
 				return;
 			}
-			ProgressionManager.Instance.UnlockNode(userHydratedProgressionTreeResponse.Tree.id, this.siNodes[upgradeType].id);
+			ProgressionManager.Instance.UnlockNode(userHydratedProgressionTreeResponse.Tree.id, sinode.id);
 		}
 	}
 
@@ -293,14 +308,17 @@ public class SIProgression : MonoBehaviour, IGorillaSliceableSimple, GorillaQues
 		foreach (UserHydratedNodeDefinition userHydratedNodeDefinition in userHydratedProgressionTreeResponse.Nodes)
 		{
 			SIUpgradeType siupgradeType;
-			Enum.TryParse<SIUpgradeType>(userHydratedNodeDefinition.name, out siupgradeType);
+			if (!Enum.TryParse<SIUpgradeType>(userHydratedNodeDefinition.name, out siupgradeType))
+			{
+				siupgradeType = SIUpgradeType.InvalidNode;
+			}
 			Dictionary<SIResource.ResourceType, int> dictionary = new Dictionary<SIResource.ResourceType, int>();
 			HydratedProgressionNodeCost cost = userHydratedNodeDefinition.cost;
 			if (((cost != null) ? cost.items : null) != null)
 			{
 				foreach (KeyValuePair<string, MothershipHydratedInventoryChange> keyValuePair in userHydratedNodeDefinition.cost.items)
 				{
-					foreach (KeyValuePair<SIResource.ResourceType, string> keyValuePair2 in this._resourceToString)
+					foreach (KeyValuePair<SIResource.ResourceType, string> keyValuePair2 in SIProgression._resourceToString)
 					{
 						if (keyValuePair2.Value == keyValuePair.Key)
 						{
@@ -819,6 +837,7 @@ public class SIProgression : MonoBehaviour, IGorillaSliceableSimple, GorillaQues
 
 	private void OnSuccessfulBonusRedeem(ProgressionManager.UserQuestsStatusResponse userQuestsStatus)
 	{
+		this.bonusProgress = 0;
 		this.ApplyServerQuestsStatus(userQuestsStatus);
 		SIPlayer.LocalPlayer.TechPointGrantedCelebrate();
 		ProgressionManager.Instance.RefreshUserInventory();
@@ -926,7 +945,7 @@ public class SIProgression : MonoBehaviour, IGorillaSliceableSimple, GorillaQues
 				{
 					int num5 = (num4 + j) % this.questSourceList.quests.Count;
 					RotatingQuest questById3 = this.questSourceList.GetQuestById(num5);
-					if (questById3 != null && questById3.isQuestActive && this.<SelectActiveQuests>g__GetMatchingCategoryCount|173_0(questById3) < this.perCategoryQuestLimit)
+					if (questById3 != null && questById3.isQuestActive && this.<SelectActiveQuests>g__GetMatchingCategoryCount|175_0(questById3) < this.perCategoryQuestLimit)
 					{
 						bool flag = false;
 						for (int k = 0; k < this.activeQuestIds.Length; k++)
@@ -1066,7 +1085,7 @@ public class SIProgression : MonoBehaviour, IGorillaSliceableSimple, GorillaQues
 			this.roomPlayTime += num;
 		}
 		this.intervalPlayTime += num;
-		for (int i = 0; i < 6; i++)
+		for (int i = 0; i < 11; i++)
 		{
 			SITechTreePageId sitechTreePageId = (SITechTreePageId)i;
 			if (SIProgression.Instance.HeldOrSnappedByGadgetPageType[sitechTreePageId] > 0)
@@ -1121,7 +1140,7 @@ public class SIProgression : MonoBehaviour, IGorillaSliceableSimple, GorillaQues
 	public void LoadSavedTelemetryData()
 	{
 		this.totalPlayTime = PlayerPrefs.GetFloat("super_infection_total_play_time", 0f);
-		for (int i = 0; i < 6; i++)
+		for (int i = 0; i < 11; i++)
 		{
 			SITechTreePageId sitechTreePageId = (SITechTreePageId)i;
 			this.timeUsingGadgetTypeTotal[sitechTreePageId] = PlayerPrefs.GetFloat("super_infection_time_holding_gadget_type_total" + sitechTreePageId.GetName<SITechTreePageId>(), 0f);
@@ -1141,7 +1160,7 @@ public class SIProgression : MonoBehaviour, IGorillaSliceableSimple, GorillaQues
 	private void SaveTelemetryData()
 	{
 		PlayerPrefs.SetFloat("super_infection_total_play_time", this.totalPlayTime);
-		for (int i = 0; i < 6; i++)
+		for (int i = 0; i < 11; i++)
 		{
 			SITechTreePageId sitechTreePageId = (SITechTreePageId)i;
 			PlayerPrefs.SetFloat("super_infection_time_holding_gadget_type_total" + sitechTreePageId.GetName<SITechTreePageId>(), this.timeUsingGadgetTypeTotal[sitechTreePageId]);
@@ -1164,7 +1183,7 @@ public class SIProgression : MonoBehaviour, IGorillaSliceableSimple, GorillaQues
 		this.lastTelemetrySent = Time.time;
 		this.intervalPlayTime = 0f;
 		this.activeTerminalTimeInterval = 0f;
-		for (int i = 0; i < 6; i++)
+		for (int i = 0; i < 11; i++)
 		{
 			SITechTreePageId sitechTreePageId = (SITechTreePageId)i;
 			this.timeUsingGadgetTypeInterval[sitechTreePageId] = 0f;
@@ -1188,7 +1207,7 @@ public class SIProgression : MonoBehaviour, IGorillaSliceableSimple, GorillaQues
 		{
 			return;
 		}
-		for (int i = 0; i < 6; i++)
+		for (int i = 0; i < 11; i++)
 		{
 			SITechTreePageId sitechTreePageId = (SITechTreePageId)i;
 			if (SIProgression.Instance.HeldOrSnappedByGadgetPageType[sitechTreePageId] > 0)
@@ -1242,7 +1261,7 @@ public class SIProgression : MonoBehaviour, IGorillaSliceableSimple, GorillaQues
 	}
 
 	[CompilerGenerated]
-	private int <SelectActiveQuests>g__GetMatchingCategoryCount|173_0(RotatingQuest quest)
+	private int <SelectActiveQuests>g__GetMatchingCategoryCount|175_0(RotatingQuest quest)
 	{
 		if (quest.category == QuestCategory.NONE)
 		{
@@ -1274,7 +1293,7 @@ public class SIProgression : MonoBehaviour, IGorillaSliceableSimple, GorillaQues
 
 	public bool ClientReady;
 
-	private Dictionary<SIResource.ResourceType, string> _resourceToString;
+	private static Dictionary<SIResource.ResourceType, string> _resourceToString;
 
 	private const string TREE_NAME = "SI_Gadgets";
 

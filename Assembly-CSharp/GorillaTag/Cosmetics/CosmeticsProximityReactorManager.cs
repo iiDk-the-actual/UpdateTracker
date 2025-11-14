@@ -56,8 +56,10 @@ namespace GorillaTag.Cosmetics
 			{
 				this.cosmetics.Add(cosmetic);
 			}
-			foreach (string text in cosmetic.GetTypes())
+			IReadOnlyList<string> types = cosmetic.GetTypes();
+			for (int i = 0; i < types.Count; i++)
 			{
+				string text = types[i];
 				if (!string.IsNullOrEmpty(text))
 				{
 					List<CosmeticsProximityReactor> list;
@@ -127,8 +129,9 @@ namespace GorillaTag.Cosmetics
 			}
 			if (this.gorillaBodyPart.Count > 0)
 			{
-				foreach (CosmeticsProximityReactor cosmeticsProximityReactor in this.cosmetics)
+				for (int i = 0; i < this.cosmetics.Count; i++)
 				{
+					CosmeticsProximityReactor cosmeticsProximityReactor = this.cosmetics[i];
 					if (!(cosmeticsProximityReactor == null))
 					{
 						if (!cosmeticsProximityReactor.AcceptsAnySource())
@@ -139,8 +142,9 @@ namespace GorillaTag.Cosmetics
 						{
 							bool flag = false;
 							Vector3 vector = default(Vector3);
-							foreach (CosmeticsProximityReactor cosmeticsProximityReactor2 in this.gorillaBodyPart)
+							for (int j = 0; j < this.gorillaBodyPart.Count; j++)
 							{
+								CosmeticsProximityReactor cosmeticsProximityReactor2 = this.gorillaBodyPart[j];
 								if (!(cosmeticsProximityReactor2 == null) && cosmeticsProximityReactor.AcceptsThisSource(cosmeticsProximityReactor2.gorillaBodyParts))
 								{
 									bool flag2;
@@ -148,7 +152,7 @@ namespace GorillaTag.Cosmetics
 									Vector3 vector2;
 									if (flag2 && CosmeticsProximityReactorManager.AreCollidersWithinThreshold(cosmeticsProximityReactor2, cosmeticsProximityReactor, sourceThresholdFor, out vector2))
 									{
-										cosmeticsProximityReactor.OnSourceBelow(vector2, cosmeticsProximityReactor2.gorillaBodyParts);
+										cosmeticsProximityReactor.OnSourceBelow(vector2, cosmeticsProximityReactor2.gorillaBodyParts, cosmeticsProximityReactor2.GetComponentInParent<VRRig>());
 										vector = vector2;
 										flag = true;
 									}
@@ -156,7 +160,7 @@ namespace GorillaTag.Cosmetics
 							}
 							if (flag)
 							{
-								cosmeticsProximityReactor.WhileSourceBelow(vector, CosmeticsProximityReactor.GorillaBodyPart.HandLeft | CosmeticsProximityReactor.GorillaBodyPart.HandRight | CosmeticsProximityReactor.GorillaBodyPart.Mouth);
+								cosmeticsProximityReactor.WhileSourceBelow(vector, CosmeticsProximityReactor.GorillaBodyPart.HandLeft | CosmeticsProximityReactor.GorillaBodyPart.HandRight | CosmeticsProximityReactor.GorillaBodyPart.Mouth, (this.gorillaBodyPart[0] != null) ? this.gorillaBodyPart[0].GetComponentInParent<VRRig>() : null);
 							}
 							else
 							{
@@ -170,8 +174,9 @@ namespace GorillaTag.Cosmetics
 			{
 				this.RebuildTypeKeysCache();
 			}
-			foreach (string text2 in this.typeKeysCache)
+			for (int k = 0; k < this.typeKeysCache.Count; k++)
 			{
+				string text2 = this.typeKeysCache[k];
 				List<CosmeticsProximityReactor> list2;
 				if (this.byType.TryGetValue(text2, out list2) && list2 != null && list2.Count > 0)
 				{
@@ -232,8 +237,9 @@ namespace GorillaTag.Cosmetics
 
 		private void BreakTheBoundForGroup(List<CosmeticsProximityReactor> group)
 		{
-			foreach (CosmeticsProximityReactor cosmeticsProximityReactor in group)
+			for (int i = 0; i < group.Count; i++)
 			{
+				CosmeticsProximityReactor cosmeticsProximityReactor = group[i];
 				int num;
 				if (!(cosmeticsProximityReactor == null) && cosmeticsProximityReactor.HasAnyCosmeticMatch() && (!this.matchedFrame.TryGetValue(cosmeticsProximityReactor, out num) || num != Time.frameCount))
 				{
@@ -256,13 +262,16 @@ namespace GorillaTag.Cosmetics
 		{
 			partner = null;
 			contact = default(Vector3);
-			foreach (string text in a.GetTypes())
+			IReadOnlyList<string> types = a.GetTypes();
+			for (int i = 0; i < types.Count; i++)
 			{
+				string text = types[i];
 				List<CosmeticsProximityReactor> list;
 				if (!string.IsNullOrEmpty(text) && this.byType.TryGetValue(text, out list) && list != null)
 				{
-					foreach (CosmeticsProximityReactor cosmeticsProximityReactor in list)
+					for (int j = 0; j < list.Count; j++)
 					{
+						CosmeticsProximityReactor cosmeticsProximityReactor = list[j];
 						if (!(cosmeticsProximityReactor == null) && !(cosmeticsProximityReactor == a) && !CosmeticsProximityReactorManager.ShouldSkipSameIdPair(a, cosmeticsProximityReactor))
 						{
 							bool flag;

@@ -28,5 +28,7 @@ public interface IGameEntityZoneComponent
 
 	bool ShouldClearZone();
 
+	long ProcessMigratedGameEntityCreateData(GameEntity entity, long createData);
+
 	bool ValidateMigratedGameEntity(int netId, int entityTypeId, Vector3 position, Quaternion rotation, long createData, int actorNr);
 }

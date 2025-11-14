@@ -116,7 +116,6 @@ namespace GorillaTagScripts.VirtualStumpCustomMaps
 
 		public string titleDataKey = "CustomMapCosmeticData";
 
-		[OnEnterPlay_Set(false)]
 		private bool initializedFromTitleData;
 	}
 }

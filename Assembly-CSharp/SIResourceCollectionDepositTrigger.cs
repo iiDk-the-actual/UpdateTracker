@@ -15,7 +15,7 @@ public class SIResourceCollectionDepositTrigger : MonoBehaviour
 		{
 			return;
 		}
-		if (componentInParent.CanDeposit(componentInParent.lastPlayerHeld))
+		if (componentInParent.CanDeposit())
 		{
 			this.resourceDeposit.ResourceDeposited(componentInParent);
 		}

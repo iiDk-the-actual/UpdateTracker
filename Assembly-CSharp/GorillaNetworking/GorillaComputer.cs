@@ -2382,7 +2382,7 @@ namespace GorillaNetworking
 			gorillaText.Text += text;
 			LocalisationManager.TryGetKeyForCurrentLocale("STARTUP_PLAYERS_ONLINE", out text3, "{playersOnline} PLAYERS ONLINE\n\n");
 			GorillaText gorillaText2 = this.screenText;
-			gorillaText2.Text += text3.Replace("{playersOnline}", NetworkSystem.Instance.GlobalPlayerCount().ToString());
+			gorillaText2.Text += text3.Replace("{playersOnline}", HowManyMonke.ThisMany.ToString());
 			LocalisationManager.TryGetKeyForCurrentLocale("STARTUP_USERS_BANNED", out text3, "{usersBanned} USERS BANNED YESTERDAY\n\n");
 			GorillaText gorillaText3 = this.screenText;
 			gorillaText3.Text += text3.Replace("{usersBanned}", this.usersBanned.ToString());
@@ -2499,7 +2499,7 @@ namespace GorillaNetworking
 				GorillaText gorillaText11 = this.screenText;
 				gorillaText11.Text += text.TrailingSpace();
 				GorillaText gorillaText12 = this.screenText;
-				gorillaText12.Text += NetworkSystem.Instance.GlobalPlayerCount().ToString();
+				gorillaText12.Text += HowManyMonke.ThisMany.ToString();
 			}
 			if (flag)
 			{
@@ -2595,8 +2595,7 @@ namespace GorillaNetworking
 			string text = "NOT AVAILABLE IN RANKED PLAY";
 			string text2;
 			LocalisationManager.TryGetKeyForCurrentLocale("LIMITED_ONLINE_FUNC", out text2, text);
-			GorillaText gorillaText = this.screenText;
-			gorillaText.Text += text2;
+			this.screenText.Text = text2;
 		}
 
 		private void UpdateGameModeText()
@@ -2625,13 +2624,13 @@ namespace GorillaNetworking
 		private void CheckAutoBanListForRoomName(string nameToCheck)
 		{
 			this.SwitchToLoadingState();
-			this.AutoBanPlayfabFunction(nameToCheck, true, new Action<ExecuteFunctionResult>(this.OnRoomNameChecked));
+			this.CheckForBadRoomName(nameToCheck);
 		}
 
 		private void CheckAutoBanListForPlayerName(string nameToCheck)
 		{
 			this.SwitchToLoadingState();
-			this.AutoBanPlayfabFunction(nameToCheck, false, new Action<ExecuteFunctionResult>(this.OnPlayerNameChecked));
+			this.CheckForBadPlayerName(nameToCheck);
 		}
 
 		private void CheckAutoBanListForTroopName(string nameToCheck)
@@ -2639,17 +2638,38 @@ namespace GorillaNetworking
 			if (this.IsValidTroopName(this.troopToJoin))
 			{
 				this.SwitchToLoadingState();
-				this.AutoBanPlayfabFunction(nameToCheck, false, new Action<ExecuteFunctionResult>(this.OnTroopNameChecked));
+				this.CheckForBadTroopName(nameToCheck);
 			}
 		}
 
-		private void AutoBanPlayfabFunction(string nameToCheck, bool forRoom, Action<ExecuteFunctionResult> resultCallback)
+		private void CheckForBadRoomName(string nameToCheck)
 		{
 			GorillaServer.Instance.CheckForBadName(new CheckForBadNameRequest
 			{
 				name = nameToCheck,
-				forRoom = forRoom
-			}, resultCallback, new Action<PlayFabError>(this.OnErrorNameCheck));
+				forRoom = true,
+				forTroop = false
+			}, new Action<ExecuteFunctionResult>(this.OnRoomNameChecked), new Action<PlayFabError>(this.OnErrorNameCheck));
+		}
+
+		private void CheckForBadPlayerName(string nameToCheck)
+		{
+			GorillaServer.Instance.CheckForBadName(new CheckForBadNameRequest
+			{
+				name = nameToCheck,
+				forRoom = false,
+				forTroop = false
+			}, new Action<ExecuteFunctionResult>(this.OnPlayerNameChecked), new Action<PlayFabError>(this.OnErrorNameCheck));
+		}
+
+		private void CheckForBadTroopName(string nameToCheck)
+		{
+			GorillaServer.Instance.CheckForBadName(new CheckForBadNameRequest
+			{
+				name = nameToCheck,
+				forRoom = false,
+				forTroop = true
+			}, new Action<ExecuteFunctionResult>(this.OnTroopNameChecked), new Action<PlayFabError>(this.OnErrorNameCheck));
 		}
 
 		private void OnRoomNameChecked(ExecuteFunctionResult result)

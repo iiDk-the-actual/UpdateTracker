@@ -38,6 +38,10 @@ public class ProgressionManager : MonoBehaviour
 
 	public event Action<ProgressionManager.DockWristStatusResponse> OnDockWristStatusUpdated;
 
+	public event Action<ProgressionManager.GhostReactorStatsResponse> OnGhostReactorStatsUpdated;
+
+	public event Action<ProgressionManager.GhostReactorInventoryResponse> OnGhostReactorInventoryUpdated;
+
 	private void Awake()
 	{
 		if (ProgressionManager.Instance == null)
@@ -424,7 +428,7 @@ public class ProgressionManager : MonoBehaviour
 		}));
 	}
 
-	public void StartOfShift(string shiftId, int coresRequired, int numberOfPlayers)
+	public void StartOfShift(string shiftId, int coresRequired, int numberOfPlayers, int depth)
 	{
 		base.StartCoroutine(this.DoStartOfShift(new ProgressionManager.StartOfShiftRequest
 		{
@@ -435,7 +439,8 @@ public class ProgressionManager : MonoBehaviour
 			MothershipToken = MothershipClientContext.Token,
 			ShiftId = shiftId,
 			CoresRequired = coresRequired,
-			NumberOfPlayers = numberOfPlayers
+			NumberOfPlayers = numberOfPlayers,
+			Depth = depth
 		}));
 	}
 
@@ -454,6 +459,49 @@ public class ProgressionManager : MonoBehaviour
 			MothershipDeploymentId = MothershipClientApiUnity.DeploymentId,
 			MothershipToken = MothershipClientContext.Token,
 			ShiftId = shiftId,
+			SkipUserDataCache = skipUserDataCache
+		}));
+	}
+
+	public void GetGhostReactorStats()
+	{
+		base.StartCoroutine(this.DoGetGhostReactorStats(new ProgressionManager.GhostReactorStatsRequest
+		{
+			MothershipId = MothershipClientContext.MothershipId,
+			MothershipTitleId = MothershipClientApiUnity.TitleId,
+			MothershipEnvId = MothershipClientApiUnity.EnvironmentId,
+			MothershipDeploymentId = MothershipClientApiUnity.DeploymentId,
+			MothershipToken = MothershipClientContext.Token
+		}));
+	}
+
+	public void GetGhostReactorInventory()
+	{
+		base.StartCoroutine(this.DoGetGhostReactorInventory(new ProgressionManager.GhostReactorInventoryRequest
+		{
+			MothershipId = MothershipClientContext.MothershipId,
+			MothershipTitleId = MothershipClientApiUnity.TitleId,
+			MothershipEnvId = MothershipClientApiUnity.EnvironmentId,
+			MothershipDeploymentId = MothershipClientApiUnity.DeploymentId,
+			MothershipToken = MothershipClientContext.Token
+		}));
+	}
+
+	public void SetGhostReactorInventory(string jsonInventory)
+	{
+		this.SetGhostReactorInventoryInternal(jsonInventory, false);
+	}
+
+	private void SetGhostReactorInventoryInternal(string jsonInventory, bool skipUserDataCache = false)
+	{
+		base.StartCoroutine(this.DoSetGhostReactorInventory(new ProgressionManager.SetGhostReactorInventoryRequest
+		{
+			MothershipId = MothershipClientContext.MothershipId,
+			MothershipTitleId = MothershipClientApiUnity.TitleId,
+			MothershipEnvId = MothershipClientApiUnity.EnvironmentId,
+			MothershipDeploymentId = MothershipClientApiUnity.DeploymentId,
+			MothershipToken = MothershipClientContext.Token,
+			InventoryJson = jsonInventory,
 			SkipUserDataCache = skipUserDataCache
 		}));
 	}
@@ -1301,7 +1349,7 @@ public class ProgressionManager : MonoBehaviour
 		}
 		yield return this.HandleWebRequestRetries<ProgressionManager.StartOfShiftRequest>(ProgressionManager.RequestType.StartOfShift, data, delegate(ProgressionManager.StartOfShiftRequest x)
 		{
-			this.StartOfShift(data.ShiftId, data.CoresRequired, data.NumberOfPlayers);
+			this.StartOfShift(data.ShiftId, data.CoresRequired, data.NumberOfPlayers, data.Depth);
 		}, null);
 		yield break;
 	}
@@ -1337,6 +1385,78 @@ public class ProgressionManager : MonoBehaviour
 		yield return this.HandleWebRequestRetries<ProgressionManager.EndOfShiftRewardRequest>(ProgressionManager.RequestType.EndOfShiftReward, data, delegate(ProgressionManager.EndOfShiftRewardRequest x)
 		{
 			this.EndOfShiftRewardInternal(data.ShiftId, request.responseCode == 409L);
+		}, null);
+		yield break;
+	}
+
+	private IEnumerator DoGetGhostReactorStats(ProgressionManager.GhostReactorStatsRequest data)
+	{
+		UnityWebRequest request = this.FormatWebRequest<ProgressionManager.GhostReactorStatsRequest>(PlayFabAuthenticatorSettings.ProgressionApiBaseUrl, data, ProgressionManager.RequestType.GetGhostReactorStats);
+		yield return request.SendWebRequest();
+		if (request.result == UnityWebRequest.Result.Success)
+		{
+			ProgressionManager.GhostReactorStatsResponse ghostReactorStatsResponse = JsonConvert.DeserializeObject<ProgressionManager.GhostReactorStatsResponse>(request.downloadHandler.text);
+			this.retryCounters[ProgressionManager.RequestType.GetGhostReactorStats] = 0;
+			Action<ProgressionManager.GhostReactorStatsResponse> onGhostReactorStatsUpdated = this.OnGhostReactorStatsUpdated;
+			if (onGhostReactorStatsUpdated != null)
+			{
+				onGhostReactorStatsUpdated(ghostReactorStatsResponse);
+			}
+			yield break;
+		}
+		if (!this.HandleWebRequestFailures(request, false))
+		{
+			yield break;
+		}
+		yield return this.HandleWebRequestRetries<ProgressionManager.GhostReactorStatsRequest>(ProgressionManager.RequestType.GetGhostReactorStats, data, delegate(ProgressionManager.GhostReactorStatsRequest x)
+		{
+			this.GetGhostReactorStats();
+		}, null);
+		yield break;
+	}
+
+	private IEnumerator DoGetGhostReactorInventory(ProgressionManager.GhostReactorInventoryRequest data)
+	{
+		UnityWebRequest request = this.FormatWebRequest<ProgressionManager.GhostReactorInventoryRequest>(PlayFabAuthenticatorSettings.ProgressionApiBaseUrl, data, ProgressionManager.RequestType.GetGhostReactorInventory);
+		yield return request.SendWebRequest();
+		if (request.result == UnityWebRequest.Result.Success)
+		{
+			ProgressionManager.GhostReactorInventoryResponse ghostReactorInventoryResponse = JsonConvert.DeserializeObject<ProgressionManager.GhostReactorInventoryResponse>(request.downloadHandler.text);
+			this.retryCounters[ProgressionManager.RequestType.GetGhostReactorInventory] = 0;
+			Action<ProgressionManager.GhostReactorInventoryResponse> onGhostReactorInventoryUpdated = this.OnGhostReactorInventoryUpdated;
+			if (onGhostReactorInventoryUpdated != null)
+			{
+				onGhostReactorInventoryUpdated(ghostReactorInventoryResponse);
+			}
+			yield break;
+		}
+		if (!this.HandleWebRequestFailures(request, false))
+		{
+			yield break;
+		}
+		yield return this.HandleWebRequestRetries<ProgressionManager.GhostReactorInventoryRequest>(ProgressionManager.RequestType.GetGhostReactorInventory, data, delegate(ProgressionManager.GhostReactorInventoryRequest x)
+		{
+			this.GetGhostReactorInventory();
+		}, null);
+		yield break;
+	}
+
+	private IEnumerator DoSetGhostReactorInventory(ProgressionManager.SetGhostReactorInventoryRequest data)
+	{
+		UnityWebRequest request = this.FormatWebRequest<ProgressionManager.SetGhostReactorInventoryRequest>(PlayFabAuthenticatorSettings.ProgressionApiBaseUrl, data, ProgressionManager.RequestType.SetGhostReactorInventory);
+		yield return request.SendWebRequest();
+		if (request.result == UnityWebRequest.Result.Success)
+		{
+			this.retryCounters[ProgressionManager.RequestType.SetGhostReactorInventory] = 0;
+			yield break;
+		}
+		if (!this.HandleWebRequestFailures(request, true))
+		{
+			yield break;
+		}
+		yield return this.HandleWebRequestRetries<ProgressionManager.SetGhostReactorInventoryRequest>(ProgressionManager.RequestType.SetGhostReactorInventory, data, delegate(ProgressionManager.SetGhostReactorInventoryRequest x)
+		{
+			this.SetGhostReactorInventoryInternal(data.InventoryJson, request.responseCode == 409L);
 		}, null);
 		yield break;
 	}
@@ -1426,6 +1546,15 @@ public class ProgressionManager : MonoBehaviour
 			break;
 		case ProgressionManager.RequestType.EndOfShiftReward:
 			text = "/api/EndOfShiftReward";
+			break;
+		case ProgressionManager.RequestType.GetGhostReactorStats:
+			text = "/api/GetGhostReactorStats";
+			break;
+		case ProgressionManager.RequestType.GetGhostReactorInventory:
+			text = "/api/GetGhostReactorInventory";
+			break;
+		case ProgressionManager.RequestType.SetGhostReactorInventory:
+			text = "/api/SetGhostReactorInventory";
 			break;
 		}
 		UnityWebRequest unityWebRequest = new UnityWebRequest(url + text, "POST");
@@ -1562,7 +1691,10 @@ public class ProgressionManager : MonoBehaviour
 		PurchaseDrillUpgrade,
 		RecycleTool,
 		StartOfShift,
-		EndOfShiftReward
+		EndOfShiftReward,
+		GetGhostReactorStats,
+		GetGhostReactorInventory,
+		SetGhostReactorInventory
 	}
 
 	public enum WristDockUpgradeType
@@ -1942,11 +2074,51 @@ public class ProgressionManager : MonoBehaviour
 		public int CoresRequired;
 
 		public int NumberOfPlayers;
+
+		public int Depth;
 	}
 
 	[Serializable]
 	private class EndOfShiftRewardRequest : ProgressionManager.MothershipUserDataWriteRequest
 	{
 		public string ShiftId;
+	}
+
+	[Serializable]
+	private class GhostReactorStatsRequest : ProgressionManager.MothershipRequest
+	{
+	}
+
+	[Serializable]
+	public class GhostReactorStatsResponse
+	{
+		public string MothershipId;
+
+		public int MaxDepthReached;
+	}
+
+	[Serializable]
+	private class GhostReactorInventoryRequest : ProgressionManager.MothershipRequest
+	{
+	}
+
+	[Serializable]
+	public class GhostReactorInventoryResponse
+	{
+		public string MothershipId;
+
+		public string InventoryJson;
+	}
+
+	[Serializable]
+	private class SetGhostReactorInventoryRequest : ProgressionManager.MothershipUserDataWriteRequest
+	{
+		public string InventoryJson;
+	}
+
+	[Serializable]
+	public class SetGhostReactorInventoryResponse
+	{
+		public string MothershipId;
 	}
 }

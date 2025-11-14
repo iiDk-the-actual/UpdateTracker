@@ -228,6 +228,8 @@ public class GRToolProgressionTree
 	private void InitializeDockWristPartMapping()
 	{
 		this.partMapping["DockWrist"] = GRToolProgressionManager.ToolParts.DockWrist;
+		this.partMapping["StatusWatch"] = GRToolProgressionManager.ToolParts.StatusWatch;
+		this.partMapping["RattyBackpack"] = GRToolProgressionManager.ToolParts.RattyBackpack;
 	}
 
 	private void InitializeDropPodPartMapping()
@@ -236,6 +238,78 @@ public class GRToolProgressionTree
 		this.partMapping["DropPodChassis01"] = GRToolProgressionManager.ToolParts.DropPodChassis1;
 		this.partMapping["DropPodChassis02"] = GRToolProgressionManager.ToolParts.DropPodChassis2;
 		this.partMapping["DropPodChassis03"] = GRToolProgressionManager.ToolParts.DropPodChassis3;
+	}
+
+	private void AddFakeNodes()
+	{
+		if (!this.toolTree.ContainsKey(GRTool.GRToolType.Club))
+		{
+			this.toolTree[GRTool.GRToolType.Club] = new GRToolProgressionTree.GRToolProgressionNode
+			{
+				name = "Baton",
+				unlocked = true,
+				researchCost = 0,
+				rootNode = true,
+				type = GRToolProgressionManager.ToolParts.Baton,
+				partMetadata = this.manager.GetPartMetadata(GRToolProgressionManager.ToolParts.Baton),
+				requiredEmployeeLevel = GRToolProgressionTree.EmployeeLevelRequirement.None
+			};
+		}
+		if (!this.partTree.ContainsKey(GRToolProgressionManager.ToolParts.Baton))
+		{
+			this.partTree[GRToolProgressionManager.ToolParts.Baton] = this.toolTree[GRTool.GRToolType.Club];
+		}
+		if (!this.toolTree.ContainsKey(GRTool.GRToolType.EnergyEfficiency))
+		{
+			this.toolTree[GRTool.GRToolType.EnergyEfficiency] = new GRToolProgressionTree.GRToolProgressionNode
+			{
+				name = "EnergyEfficiency",
+				unlocked = true,
+				researchCost = 0,
+				rootNode = true,
+				type = GRToolProgressionManager.ToolParts.EnergyEff,
+				partMetadata = this.manager.GetPartMetadata(GRToolProgressionManager.ToolParts.EnergyEff),
+				requiredEmployeeLevel = GRToolProgressionTree.EmployeeLevelRequirement.None
+			};
+		}
+		if (!this.partTree.ContainsKey(GRToolProgressionManager.ToolParts.EnergyEff))
+		{
+			this.partTree[GRToolProgressionManager.ToolParts.EnergyEff] = this.toolTree[GRTool.GRToolType.EnergyEfficiency];
+		}
+		if (!this.toolTree.ContainsKey(GRTool.GRToolType.Collector))
+		{
+			this.toolTree[GRTool.GRToolType.Collector] = new GRToolProgressionTree.GRToolProgressionNode
+			{
+				name = "Collector",
+				unlocked = true,
+				researchCost = 0,
+				rootNode = true,
+				type = GRToolProgressionManager.ToolParts.Collector,
+				partMetadata = this.manager.GetPartMetadata(GRToolProgressionManager.ToolParts.Collector),
+				requiredEmployeeLevel = GRToolProgressionTree.EmployeeLevelRequirement.None
+			};
+		}
+		if (!this.partTree.ContainsKey(GRToolProgressionManager.ToolParts.Collector))
+		{
+			this.partTree[GRToolProgressionManager.ToolParts.Collector] = this.toolTree[GRTool.GRToolType.Collector];
+		}
+		if (!this.toolTree.ContainsKey(GRTool.GRToolType.Lantern))
+		{
+			this.toolTree[GRTool.GRToolType.Lantern] = new GRToolProgressionTree.GRToolProgressionNode
+			{
+				name = "Lantern",
+				unlocked = true,
+				researchCost = 0,
+				rootNode = true,
+				type = GRToolProgressionManager.ToolParts.Lantern,
+				partMetadata = this.manager.GetPartMetadata(GRToolProgressionManager.ToolParts.Lantern),
+				requiredEmployeeLevel = GRToolProgressionTree.EmployeeLevelRequirement.None
+			};
+		}
+		if (!this.partTree.ContainsKey(GRToolProgressionManager.ToolParts.Lantern))
+		{
+			this.partTree[GRToolProgressionManager.ToolParts.Lantern] = this.toolTree[GRTool.GRToolType.Lantern];
+		}
 	}
 
 	private void ProcessNodes()
@@ -256,11 +330,11 @@ public class GRToolProgressionTree
 			if (this.toolMapping.ContainsKey(text2))
 			{
 				GRTool.GRToolType grtoolType = this.toolMapping[text2];
+				value.progressionNode.rootNode = true;
 				if (!value.progressionNode.unlocked && this.autoUnlockNodeId == string.Empty && value.progressionNode.researchCost == 0 && value.progressionNode.requiredEmployeeLevel == GRToolProgressionTree.EmployeeLevelRequirement.None)
 				{
 					this.autoUnlockNodeId = value.progressionNode.id;
 				}
-				value.progressionNode.rootNode = true;
 				this.toolTree[grtoolType] = value.progressionNode;
 			}
 			this.partTree[value.progressionNode.type] = value.progressionNode;
@@ -367,17 +441,19 @@ public class GRToolProgressionTree
 		}
 		this.PopulateMetadata();
 		this.ProcessNodes();
-		GRToolProgressionManager grtoolProgressionManager = this.manager;
-		if (grtoolProgressionManager != null)
-		{
-			grtoolProgressionManager.SendMothershipUpdated();
-		}
+		this.AddFakeNodes();
 		if (this.autoUnlockNodeId != string.Empty)
 		{
 			string text = this.autoUnlockNodeId;
 			this.autoUnlockNodeId = string.Empty;
 			GhostReactorProgression.instance.UnlockProgressionTreeNode(this.treeId, text, this.reactor);
 		}
+		GRToolProgressionManager grtoolProgressionManager = this.manager;
+		if (grtoolProgressionManager == null)
+		{
+			return;
+		}
+		grtoolProgressionManager.SendMothershipUpdated();
 	}
 
 	public void AttemptToUnlockPart(GRToolProgressionManager.ToolParts part)

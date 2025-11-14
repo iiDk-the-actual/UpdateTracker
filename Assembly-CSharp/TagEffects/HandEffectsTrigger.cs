@@ -50,6 +50,8 @@ namespace TagEffects
 			}
 		}
 
+		public Action<IHandEffectsTrigger.Mode> OnTrigger { get; set; }
+
 		public IHandEffectsTrigger.Mode EffectMode { get; }
 
 		public Transform Transform
@@ -133,6 +135,80 @@ namespace TagEffects
 			if (this.rig.isOfflineVRRig)
 			{
 				PlayerGameEvents.TriggerHandEffect(effectType.ToString());
+			}
+			if (this.OnTrigger != null || (other != null && other.OnTrigger != null))
+			{
+				switch (effectType)
+				{
+				case TagEffectsLibrary.EffectType.FIRST_PERSON:
+				{
+					Action<IHandEffectsTrigger.Mode> onTrigger = this.OnTrigger;
+					if (onTrigger != null)
+					{
+						onTrigger(IHandEffectsTrigger.Mode.Tag1P);
+					}
+					if (other != null)
+					{
+						Action<IHandEffectsTrigger.Mode> onTrigger2 = other.OnTrigger;
+						if (onTrigger2 != null)
+						{
+							onTrigger2(IHandEffectsTrigger.Mode.Tag1P);
+						}
+					}
+					break;
+				}
+				case TagEffectsLibrary.EffectType.THIRD_PERSON:
+				{
+					Action<IHandEffectsTrigger.Mode> onTrigger3 = this.OnTrigger;
+					if (onTrigger3 != null)
+					{
+						onTrigger3(IHandEffectsTrigger.Mode.Tag3P);
+					}
+					if (other != null)
+					{
+						Action<IHandEffectsTrigger.Mode> onTrigger4 = other.OnTrigger;
+						if (onTrigger4 != null)
+						{
+							onTrigger4(IHandEffectsTrigger.Mode.Tag3P);
+						}
+					}
+					break;
+				}
+				case TagEffectsLibrary.EffectType.HIGH_FIVE:
+				{
+					Action<IHandEffectsTrigger.Mode> onTrigger5 = this.OnTrigger;
+					if (onTrigger5 != null)
+					{
+						onTrigger5(IHandEffectsTrigger.Mode.HighFive);
+					}
+					if (other != null)
+					{
+						Action<IHandEffectsTrigger.Mode> onTrigger6 = other.OnTrigger;
+						if (onTrigger6 != null)
+						{
+							onTrigger6(IHandEffectsTrigger.Mode.HighFive);
+						}
+					}
+					break;
+				}
+				case TagEffectsLibrary.EffectType.FIST_BUMP:
+				{
+					Action<IHandEffectsTrigger.Mode> onTrigger7 = this.OnTrigger;
+					if (onTrigger7 != null)
+					{
+						onTrigger7(IHandEffectsTrigger.Mode.FistBump);
+					}
+					if (other != null)
+					{
+						Action<IHandEffectsTrigger.Mode> onTrigger8 = other.OnTrigger;
+						if (onTrigger8 != null)
+						{
+							onTrigger8(IHandEffectsTrigger.Mode.FistBump);
+						}
+					}
+					break;
+				}
+				}
 			}
 			HandEffectsOverrideCosmetic handEffectsOverrideCosmetic = null;
 			HandEffectsOverrideCosmetic handEffectsOverrideCosmetic2 = null;

@@ -124,7 +124,7 @@ public static class Utils
 		else
 		{
 			double num3 = num + currentTime;
-			if (time > currentTime + 0.05 && time < num3)
+			if (time > currentTime + 0.5 && time < num3)
 			{
 				return false;
 			}

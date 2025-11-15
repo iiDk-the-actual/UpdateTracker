@@ -1520,10 +1520,7 @@ public class VRRig : MonoBehaviour, IWrappedSerializable, INetworkStruct, IPreDi
 
 	void IWrappedSerializable.OnSerializeRead(PhotonStream stream, PhotonMessageInfo info)
 	{
-		if (!Utils.ValidateServerTime(info.SentServerTime, 60.0))
-		{
-			return;
-		}
+		double sentServerTime = info.SentServerTime;
 		InputStruct inputStruct = new InputStruct
 		{
 			headRotation = (int)stream.ReceiveNext(),

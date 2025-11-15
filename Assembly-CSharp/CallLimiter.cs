@@ -38,7 +38,7 @@ public class CallLimiter
 		else
 		{
 			double num4 = num2 + currentTime;
-			if (time > currentTime + 0.05 && time < num4)
+			if (time > currentTime + 0.5 && time < num4)
 			{
 				return false;
 			}

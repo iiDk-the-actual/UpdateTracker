@@ -314,11 +314,6 @@ public static class GorillaTelemetry
 		GorillaTelemetry.telemetryEventsQueuePlayFab.Enqueue(eventContent);
 	}
 
-	private static void QueueTelemetryEventPlayFab(EventContents eventContent)
-	{
-		GorillaTelemetry.telemetryEventsQueuePlayFab.Enqueue(eventContent);
-	}
-
 	private static void FlushPlayFabTelemetry()
 	{
 		int count = GorillaTelemetry.telemetryEventsQueuePlayFab.Count;
@@ -1800,13 +1795,13 @@ public static class GorillaTelemetry
 		GorillaTelemetry.gSuperInfectionArgs["rounds_played_interval"] = roundsPlayedInterval.ToString();
 		GorillaTelemetry.gSuperInfectionArgs["unlocked_nodes"] = new string(array);
 		GorillaTelemetry.gSuperInfectionArgs["number_of_players"] = numberOfPlayers.ToString();
-		GorillaTelemetry.QueueTelemetryEventPlayFab(new EventContents
+		GorillaTelemetry.EnqueueTelemetryEventPlayFab(new EventContents
 		{
 			Name = (roomDisconnect ? "super_infection_room_disconnect" : "super_infection_interval"),
 			EventNamespace = GorillaTelemetry.EVENT_NAMESPACE,
 			Payload = GorillaTelemetry.gSuperInfectionArgs
 		});
-		GorillaTelemetry.SendMothershipAnalytics(new GhostReactorTelemetryData
+		GhostReactorTelemetryData ghostReactorTelemetryData = new GhostReactorTelemetryData
 		{
 			EventName = (roomDisconnect ? "super_infection_room_left" : "super_infection_interval"),
 			CustomTags = new string[]
@@ -1899,7 +1894,8 @@ public static class GorillaTelemetry
 					numberOfPlayers.ToString()
 				}
 			}
-		});
+		};
+		GorillaTelemetry.EnqueueTelemetryEvent(ghostReactorTelemetryData.EventName, ghostReactorTelemetryData.BodyData, ghostReactorTelemetryData.CustomTags);
 	}
 
 	public static void SuperInfectionEvent(string purchaseType, int shinyRockCost, int techPointsPurchased, float totalPlayTime, float roomPlayTime, float sessionPlayTime)
@@ -1916,13 +1912,13 @@ public static class GorillaTelemetry
 		GorillaTelemetry.gSuperInfectionArgs["si_purchase_type"] = purchaseType;
 		GorillaTelemetry.gSuperInfectionArgs["si_shiny_rock_cost"] = shinyRockCost;
 		GorillaTelemetry.gSuperInfectionArgs["si_tech_points_purchased"] = techPointsPurchased;
-		GorillaTelemetry.QueueTelemetryEventPlayFab(new EventContents
+		GorillaTelemetry.EnqueueTelemetryEventPlayFab(new EventContents
 		{
 			Name = "super_infection_purchase",
 			EventNamespace = GorillaTelemetry.EVENT_NAMESPACE,
 			Payload = GorillaTelemetry.gSuperInfectionArgs
 		});
-		GorillaTelemetry.SendMothershipAnalytics(new GhostReactorTelemetryData
+		GhostReactorTelemetryData ghostReactorTelemetryData = new GhostReactorTelemetryData
 		{
 			EventName = "super_infection_purchase",
 			CustomTags = new string[]
@@ -1961,103 +1957,8 @@ public static class GorillaTelemetry
 					techPointsPurchased.ToString()
 				}
 			}
-		});
-	}
-
-	public static void SendMothershipAnalytics(TelemetryData data)
-	{
-		if (string.IsNullOrEmpty(data.EventName))
-		{
-			Debug.LogError("[GORILLA_TELEMETRY::MOTHERSHIP_ANALYTICS] Event Name is null or empty");
-			return;
-		}
-		if (data.BodyData == null || data.BodyData.Count == 0)
-		{
-			Debug.LogError("[GORILLA_TELEMETRY::MOTHERSHIP_ANALYTICS] Body Data KVPs are null or empty - must have at least 1");
-			return;
-		}
-		string text = string.Empty;
-		if (data.CustomTags != null && data.CustomTags.Length != 0)
-		{
-			Dictionary<string, string> dictionary = new Dictionary<string, string>();
-			for (int j = 0; j < data.CustomTags.Length; j++)
-			{
-				dictionary.Add(string.Format("tag{0}", j + 1), data.CustomTags[j]);
-			}
-			text = JsonConvert.SerializeObject(dictionary);
-		}
-		string text2 = JsonConvert.SerializeObject(data.BodyData);
-		MothershipWriteEventsRequest mothershipWriteEventsRequest = new MothershipWriteEventsRequest
-		{
-			title_id = MothershipClientApiUnity.TitleId,
-			deployment_id = MothershipClientApiUnity.DeploymentId,
-			env_id = MothershipClientApiUnity.EnvironmentId,
-			events = new AnalyticsRequestVector(new List<MothershipAnalyticsEvent>
-			{
-				new MothershipAnalyticsEvent
-				{
-					event_timestamp = DateTime.UtcNow.ToString("O"),
-					event_name = data.EventName,
-					custom_tags = text,
-					body = text2
-				}
-			})
 		};
-		MothershipClientApiUnity.WriteEvents(MothershipClientContext.MothershipId, mothershipWriteEventsRequest, delegate(MothershipWriteEventsResponse resp)
-		{
-			Debug.Log("[GORILLA_TELEMETRY::MOTHERSHIP_ANALYTICS] Successfully submitted analytics for event: [" + data.EventName + "]");
-		}, delegate(MothershipError err, int i)
-		{
-			Debug.Log("[GORILLA_TELEMETRY::MOTHERSHIP_ANALYTICS] Failed to submit analytics for event: [" + data.EventName + "], with error:\n" + err.Message);
-		});
-	}
-
-	public static void SendMothershipAnalytics(GhostReactorTelemetryData data)
-	{
-		if (string.IsNullOrEmpty(data.EventName))
-		{
-			Debug.LogError("[GORILLA_TELEMETRY::MOTHERSHIP_ANALYTICS] Event Name is null or empty");
-			return;
-		}
-		if (data.BodyData == null || data.BodyData.Count == 0)
-		{
-			Debug.LogError("[GORILLA_TELEMETRY::MOTHERSHIP_ANALYTICS] Body Data KVPs are null or empty - must have at least 1");
-			return;
-		}
-		string text = string.Empty;
-		if (data.CustomTags != null && data.CustomTags.Length != 0)
-		{
-			Dictionary<string, string> dictionary = new Dictionary<string, string>();
-			for (int j = 0; j < data.CustomTags.Length; j++)
-			{
-				dictionary.Add(string.Format("tag{0}", j + 1), data.CustomTags[j]);
-			}
-			text = JsonConvert.SerializeObject(dictionary);
-		}
-		string text2 = JsonConvert.SerializeObject(data.BodyData);
-		MothershipWriteEventsRequest mothershipWriteEventsRequest = new MothershipWriteEventsRequest
-		{
-			title_id = MothershipClientApiUnity.TitleId,
-			deployment_id = MothershipClientApiUnity.DeploymentId,
-			env_id = MothershipClientApiUnity.EnvironmentId,
-			events = new AnalyticsRequestVector(new List<MothershipAnalyticsEvent>
-			{
-				new MothershipAnalyticsEvent
-				{
-					event_timestamp = DateTime.UtcNow.ToString("O"),
-					event_name = data.EventName,
-					custom_tags = text,
-					body = text2
-				}
-			})
-		};
-		MothershipClientApiUnity.WriteEvents(MothershipClientContext.MothershipId, mothershipWriteEventsRequest, delegate(MothershipWriteEventsResponse resp)
-		{
-			Debug.Log("[GORILLA_TELEMETRY::MOTHERSHIP_ANALYTICS] Successfully submitted analytics for event: [" + data.EventName + "]");
-		}, delegate(MothershipError err, int i)
-		{
-			Debug.Log("[GORILLA_TELEMETRY::MOTHERSHIP_ANALYTICS] Failed to submit analytics for event: [" + data.EventName + "], with error:\n" + err.Message);
-		});
+		GorillaTelemetry.EnqueueTelemetryEvent(ghostReactorTelemetryData.EventName, ghostReactorTelemetryData.BodyData, ghostReactorTelemetryData.CustomTags);
 	}
 
 	public static void PostNotificationEvent(string notificationType)

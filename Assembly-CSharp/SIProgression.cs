@@ -1119,6 +1119,11 @@ public class SIProgression : MonoBehaviour, IGorillaSliceableSimple, GorillaQues
 
 	public void SendTelemetryData()
 	{
+		if (Time.time < this.lastDisconnectTelemetrySent + this.minDisconnectTelemetryCooldown)
+		{
+			return;
+		}
+		this.lastDisconnectTelemetrySent = Time.time;
 		this.SaveTelemetryData();
 		GorillaTelemetry.SuperInfectionEvent(true, this.totalPlayTime, this.roomPlayTime, Time.time, this.intervalPlayTime, this.activeTerminalTimeTotal, this.activeTerminalTimeInterval, this.timeUsingGadgetTypeTotal, this.timeUsingGadgetTypeInterval, this.timeUsingOwnGadgetsTotal, this.timeUsingOwnGadgetsInterval, this.timeUsingOthersGadgetsTotal, this.timeUsingOthersGadgetsInterval, this.tagsUsingGadgetTypeTotal, this.tagsUsingGadgetTypeInterval, this.tagsHoldingOwnGadgetTotal, this.tagsHoldingOwnGadgetInterval, this.tagsHoldingOthersGadgetTotal, this.tagsHoldingOthersGadgetInterval, this.resourcesCollectedTotal, this.resourcesCollectedInterval, this.roundsPlayedTotal, this.roundsPlayedInterval, SIProgression.Instance.unlockedTechTreeData, NetworkSystem.Instance.InRoom ? NetworkSystem.Instance.RoomPlayerCount : (-1));
 		this.ResetTelemetryIntervalData();
@@ -1481,6 +1486,10 @@ public class SIProgression : MonoBehaviour, IGorillaSliceableSimple, GorillaQues
 	private const int STARTING_PACKAGE_MAX_ATTEMPTS = 10;
 
 	private bool[] redeemingQuestInProgress = new bool[3];
+
+	private float lastDisconnectTelemetrySent;
+
+	private float minDisconnectTelemetryCooldown = 60f;
 
 	public struct SINode
 	{
